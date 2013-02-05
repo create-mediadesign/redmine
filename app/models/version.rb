@@ -33,6 +33,7 @@ class Version < ActiveRecord::Base
   validates_format_of :effective_date, :with => /^\d{4}-\d{2}-\d{2}$/, :message => :not_a_date, :allow_nil => true
   validates_inclusion_of :status, :in => VERSION_STATUSES
   validates_inclusion_of :sharing, :in => VERSION_SHARINGS
+  validates_numericality_of :projected_hours, :allow_nil => true
 
   scope :named, lambda {|arg| { :conditions => ["LOWER(#{table_name}.name) = LOWER(?)", arg.to_s.strip]}}
   scope :open, :conditions => {:status => 'open'}
@@ -204,7 +205,12 @@ class Version < ActiveRecord::Base
       end
     end
   end
-
+  
+  # Transforms hours to seconds.
+  def projected_hours=(h)
+    write_attribute :projected_hours, (h.is_a?(String) ? h.to_hours : h)
+  end
+  
   private
 
   def load_issue_counts

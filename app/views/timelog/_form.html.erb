@@ -14,6 +14,10 @@
 	<p><%= f.text_field :hours, :size => 6, :required => true %></p>
 	<p><%= f.text_field :comments, :size => 100 %></p>
 	<p><%= f.select :activity_id, activity_collection_for_select_options(@time_entry), :required => true %></p>
+	<p><%= f.select :department_id,
+	                options_for_department(Department.roots),
+	                :required => true,
+	                :selected => @time_entry.department_id || User.current.last_department.try(:id) %></p>
 	<% @time_entry.custom_field_values.each do |value| %>
 	  <p><%= custom_field_tag_with_label :time_entry, value %></p>
 	<% end %>

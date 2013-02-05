@@ -250,7 +250,8 @@ class Changeset < ActiveRecord::Base
       :issue => issue,
       :spent_on => commit_date,
       :comments => l(:text_time_logged_by_changeset, :value => text_tag(issue.project),
-                     :locale => Setting.default_language)
+                     :locale => Setting.default_language),
+      :department_id => Department::DEFAULT_ID
       )
     time_entry.activity = log_time_activity unless log_time_activity.nil?
 

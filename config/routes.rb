@@ -331,4 +331,13 @@ RedmineApp::Application.routes.draw do
       end
     end
   end
+
+  # Evaluation routes
+  namespace :evaluation do
+    with_options :only => :index do |index_only|
+      index_only.resources :time_entries
+      index_only.resources :projects
+      index_only.resources :users
+    end
+  end
 end

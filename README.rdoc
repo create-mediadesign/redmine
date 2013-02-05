@@ -2,4 +2,19 @@
 
 Redmine is a flexible project management web application written using Ruby on Rails framework.
 
-More details can be found in the doc directory or on the official website http://www.redmine.org
+More details can be found at in the doc directory or on the official website http://www.redmine.org
+
+== Extensions
+
+* Added <i>department</i> attribute to <i>time entry</i>.
+* Added <i>estimated_hours</i> attribute to <i>projects</i>.
+* Added <i>billable_hours</i> attribute to <i>projects</i>.
+* Added <i>typ</i> attribute to <i>projects</i>.
+* Added <i>release_date</i> attribute to <i>projects</i>.
+* Added <i>projected_hours</i> attribute to <i>versions</i>.
+* Added <i>blamable</i> attribute to <i>roles</i>.
+* Interface to external evaluation software.
+
+== Known issues
+
+* Unit test of <i>Changeset</i> is failing. Can not create a new time entry because department is unknown.

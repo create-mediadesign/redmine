@@ -43,7 +43,8 @@ class IssuesControllerTest < ActionController::TestCase
            :journal_details,
            :queries,
            :repositories,
-           :changesets
+           :changesets,
+           :departments
 
   include Redmine::I18n
 
@@ -343,7 +344,7 @@ class IssuesControllerTest < ActionController::TestCase
 
   def test_index_csv_with_spent_time_column
     issue = Issue.create!(:project_id => 1, :tracker_id => 1, :subject => 'test_index_csv_with_spent_time_column', :author_id => 2)
-    TimeEntry.create!(:project => issue.project, :issue => issue, :hours => 7.33, :user => User.find(2), :spent_on => Date.today)
+    TimeEntry.create!(:project => issue.project, :issue => issue, :hours => 7.33, :user => User.find(2), :spent_on => Date.today, :department_id => 1)
 
     get :index, :format => 'csv', :set_filter => '1', :c => %w(subject spent_hours)
     assert_response :success
@@ -2196,7 +2197,7 @@ class IssuesControllerTest < ActionController::TestCase
   def test_get_edit_with_params
     @request.session[:user_id] = 2
     get :edit, :id => 1, :issue => { :status_id => 5, :priority_id => 7 },
-        :time_entry => { :hours => '2.5', :comments => 'test_get_edit_with_params', :activity_id => TimeEntryActivity.first.id }
+        :time_entry => { :hours => '2.5', :comments => 'test_get_edit_with_params', :activity_id => TimeEntryActivity.first.id, :department_id => '100' }
     assert_response :success
     assert_template 'edit'
 
@@ -2219,6 +2220,9 @@ class IssuesControllerTest < ActionController::TestCase
     assert_tag :select, :attributes => { :name => 'time_entry[activity_id]' },
                         :child => { :tag => 'option',
                                     :attributes => { :selected => 'selected', :value => TimeEntryActivity.first.id } }
+    assert_tag :select, :attributes => { :name => 'time_entry[department_id]' },
+                        :child => { :tag => 'option',
+                                    :attributes => { :value => Department.roots.first.id } }
     assert_tag :input, :attributes => { :name => 'time_entry[comments]', :value => 'test_get_edit_with_params' }
   end
 
@@ -2433,7 +2437,7 @@ class IssuesControllerTest < ActionController::TestCase
            :id => 1,
            :issue => { :status_id => 2, :assigned_to_id => 3 },
            :notes => 'Assigned to dlopper',
-           :time_entry => { :hours => '', :comments => '', :activity_id => TimeEntryActivity.first }
+           :time_entry => { :hours => '', :comments => '', :activity_id => TimeEntryActivity.first, :department_id => '100' }
     end
     assert_redirected_to :action => 'show', :id => '1'
     issue.reload
@@ -2471,7 +2475,7 @@ class IssuesControllerTest < ActionController::TestCase
       put :update,
            :id => 1,
            :notes => '2.5 hours added',
-           :time_entry => { :hours => '2.5', :comments => 'test_put_update_with_note_and_spent_time', :activity_id => TimeEntryActivity.first.id }
+           :time_entry => { :hours => '2.5', :comments => 'test_put_update_with_note_and_spent_time', :activity_id => TimeEntryActivity.first.id, :department_id => '100' }
     end
     assert_redirected_to :action => 'show', :id => '1'
 
@@ -2645,7 +2649,7 @@ class IssuesControllerTest < ActionController::TestCase
       put :update,
            :id => 1,
            :notes => notes,
-           :time_entry => {"comments"=>"", "activity_id"=>"", "hours"=>"2z"}
+           :time_entry => {"comments"=>"", "activity_id"=>"", "hours"=>"2z", "department_id"=>"100"}
     end
     assert_response :success
     assert_template 'edit'

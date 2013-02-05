@@ -1,0 +1,11 @@
+---
+departments_001:
+  id: 100
+  name: Sales
+departments_002:
+  id: 101
+  name: Sales1
+  parent_id: 100
+departments_003:
+  id: 102
+  name: Marketing

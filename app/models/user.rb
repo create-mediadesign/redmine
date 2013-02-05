@@ -51,11 +51,13 @@ class User < Principal
   has_one :rss_token, :class_name => 'Token', :conditions => "action='feeds'"
   has_one :api_token, :class_name => 'Token', :conditions => "action='api'"
   belongs_to :auth_source
-
+  belongs_to :last_department, :class_name => 'Department'
+  
   # Active non-anonymous users scope
   scope :active, :conditions => "#{User.table_name}.status = #{STATUS_ACTIVE}"
   scope :logged, :conditions => "#{User.table_name}.status <> #{STATUS_ANONYMOUS}"
   scope :status, lambda {|arg| arg.blank? ? {} : {:conditions => {:status => arg.to_i}} }
+  scope :updated_on_gte, lambda { |date| { :conditions => ['updated_on >= ?', date] } }
 
   acts_as_customizable
 

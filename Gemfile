@@ -1,11 +1,14 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.2.6'
+gem 'rails', '3.2.11'
 gem 'prototype-rails', '3.2.1'
 gem "i18n", "~> 0.6.0"
 gem "coderay", "~> 1.0.6"
 gem "fastercsv", "~> 1.5.0", :platforms => [:mri_18, :mingw_18, :jruby]
 gem "builder"
+gem 'capistrano'
+gem 'rvm-capistrano'
+gem 'airbrake'
 
 # Optional gem for LDAP authentication
 group :ldap do
@@ -14,7 +17,7 @@ end
 
 # Optional gem for OpenID authentication
 group :openid do
-  gem "ruby-openid", "~> 2.1.4", :require => "openid"
+  gem "ruby-openid", "~> 2.2.0", :require => "openid"
   gem "rack-openid"
 end
 
@@ -47,7 +50,7 @@ end
 
 platforms :mri_19, :mingw_19 do
   group :mysql do
-    gem "mysql2", "~> 0.3.11"
+    gem "mysql2"
   end
 end
 
@@ -70,11 +73,13 @@ end
 group :development do
   gem "rdoc", ">= 2.4.2"
   gem "yard"
+  gem 'pry-rails'
 end
 
 group :test do
-  gem "shoulda", "~> 2.11"
+  gem "shoulda", "~> 3.1.0"
   gem "mocha"
+  gem 'pry-rails'
 end
 
 local_gemfile = File.join(File.dirname(__FILE__), "Gemfile.local")

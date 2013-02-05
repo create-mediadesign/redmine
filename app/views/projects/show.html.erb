@@ -1,7 +1,9 @@
 <div class="contextual">
   <% if User.current.allowed_to?(:add_subprojects, @project) %>
-    <%= link_to l(:label_subproject_new), {:controller => 'projects', :action => 'new', :parent_id => @project}, :class => 'icon icon-add' %>
+    <%= link_to l(:label_subproject_new), {:controller => 'projects', :action => 'new', :parent_id => @project}, :class => 'icon icon-add' %> |
   <% end %>
+  
+  <%= link_to_if_authorized l(:button_log_time), {:controller => 'timelog', :action => 'new', :project_id => @project, :issue_id => nil}, :class => 'icon icon-time-add' %>
 </div>
 
 <h2><%=l(:label_overview)%></h2>
@@ -66,9 +68,14 @@
 </div>
 
 <% content_for :sidebar do %>
+    <h3><%= l(:field_estimated_hours) %></h3>
+    <p><span class="icon icon-time"><%= l_hours(@project.estimated_hours) %></span></p>
+    
     <% if @total_hours.present? %>
     <h3><%= l(:label_spent_time) %></h3>
     <p><span class="icon icon-time"><%= l_hours(@total_hours) %></span></p>
+    <h3><%= l(:label_todays_total_hours) %></h3>
+    <p><span class="icon icon-time"><%= l_hours(@todays_total_hours) %></span></p>
     <p><%= link_to(l(:label_details), project_time_entries_path(@project)) %> |
     <%= link_to(l(:label_report), report_project_time_entries_path(@project)) %></p>
     <% end %>

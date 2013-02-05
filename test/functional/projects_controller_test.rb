@@ -155,7 +155,8 @@ class ProjectsControllerTest < ActionController::TestCase
             :tracker_ids => ['1', '3'],
             # an issue custom field that is not for all project
             :issue_custom_field_ids => ['9'],
-            :enabled_module_names => ['issue_tracking', 'news', 'repository']
+            :enabled_module_names => ['issue_tracking', 'news', 'repository'],
+            :typ => Project::TYPES.first
           }
         assert_redirected_to '/projects/blog/settings'
 
@@ -178,7 +179,8 @@ class ProjectsControllerTest < ActionController::TestCase
                                  :identifier => "blog",
                                  :is_public => 1,
                                  :custom_field_values => { '3' => 'Beta' },
-                                 :parent_id => 1
+                                 :parent_id => 1,
+                                 :typ => Project::TYPES.first
                                 }
         assert_redirected_to '/projects/blog/settings'
 
@@ -189,7 +191,7 @@ class ProjectsControllerTest < ActionController::TestCase
 
       should "continue" do
         assert_difference 'Project.count' do
-          post :create, :project => {:name => "blog", :identifier => "blog"}, :continue => 'Create and continue'
+          post :create, :project => {:name => "blog", :identifier => "blog", :typ => Project::TYPES.first}, :continue => 'Create and continue'
         end
         assert_redirected_to '/projects/new?'
       end
@@ -208,7 +210,8 @@ class ProjectsControllerTest < ActionController::TestCase
                                  :is_public => 1,
                                  :custom_field_values => { '3' => 'Beta' },
                                  :tracker_ids => ['1', '3'],
-                                 :enabled_module_names => ['issue_tracking', 'news', 'repository']
+                                 :enabled_module_names => ['issue_tracking', 'news', 'repository'],
+                                 :typ => Project::TYPES.first
                                 }
 
         assert_redirected_to '/projects/blog/settings'
@@ -232,7 +235,8 @@ class ProjectsControllerTest < ActionController::TestCase
                                    :identifier => "blog",
                                    :is_public => 1,
                                    :custom_field_values => { '3' => 'Beta' },
-                                   :parent_id => 1
+                                   :parent_id => 1,
+                                   :typ => Project::TYPES.first
                                   }
         end
         assert_response :success
@@ -255,7 +259,8 @@ class ProjectsControllerTest < ActionController::TestCase
                                  :identifier => "blog",
                                  :is_public => 1,
                                  :custom_field_values => { '3' => 'Beta' },
-                                 :parent_id => 1
+                                 :parent_id => 1,
+                                 :typ => Project::TYPES.first
                                 }
         assert_redirected_to '/projects/blog/settings'
         project = Project.find_by_name('blog')
@@ -267,7 +272,8 @@ class ProjectsControllerTest < ActionController::TestCase
                                    :description => "weblog",
                                    :identifier => "blog",
                                    :is_public => 1,
-                                   :custom_field_values => { '3' => 'Beta' }
+                                   :custom_field_values => { '3' => 'Beta' },
+                                   :typ => Project::TYPES.first
                                   }
         end
         assert_response :success
@@ -284,7 +290,8 @@ class ProjectsControllerTest < ActionController::TestCase
                                    :identifier => "blog",
                                    :is_public => 1,
                                    :custom_field_values => { '3' => 'Beta' },
-                                   :parent_id => 6
+                                   :parent_id => 6,
+                                   :typ => Project::TYPES.first
                                   }
         end
         assert_response :success
@@ -448,7 +455,7 @@ class ProjectsControllerTest < ActionController::TestCase
     CustomField.delete_all
     parent = nil
     6.times do |i|
-      p = Project.create!(:name => "Breadcrumbs #{i}", :identifier => "breadcrumbs-#{i}")
+      p = Project.create!(:name => "Breadcrumbs #{i}", :identifier => "breadcrumbs-#{i}", :typ => Project::TYPES.first)
       p.set_parent!(parent)
       get :show, :id => p
       assert_tag :h1, :parent => { :attributes => {:id => 'header'}},
@@ -482,7 +489,8 @@ class ProjectsControllerTest < ActionController::TestCase
           :name => 'Copy',
           :identifier => 'unique-copy',
           :tracker_ids => ['1', '2', '3', ''],
-          :enabled_module_names => %w(issue_tracking time_tracking)
+          :enabled_module_names => %w(issue_tracking time_tracking),
+          :typ => Project::TYPES.first
         },
         :only => %w(issues versions)
     end
@@ -499,7 +507,7 @@ class ProjectsControllerTest < ActionController::TestCase
 
   def test_post_copy_should_redirect_to_settings_when_successful
     @request.session[:user_id] = 1 # admin
-    post :copy, :id => 1, :project => {:name => 'Copy', :identifier => 'unique-copy'}
+    post :copy, :id => 1, :project => {:name => 'Copy', :identifier => 'unique-copy', :typ => Project::TYPES.first}
     assert_response :redirect
     assert_redirected_to :controller => 'projects', :action => 'settings', :id => 'unique-copy'
   end

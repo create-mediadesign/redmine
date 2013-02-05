@@ -43,6 +43,46 @@ class ProjectTest < ActiveSupport::TestCase
     set_tmp_attachments_directory
     User.current = nil
   end
+  
+  context "#validates_inclusion_of_type" do
+    should "be valid with a typ included in the TYPES list" do
+      project = Project.new(:typ => Project::TYPES.first)
+      project.valid?
+      assert_nil project.errors.get(:typ)
+    end
+    
+    should "not be valid with a typ not included in the TYPES list" do
+      project = Project.new(:typ => '_not_included_in_list')
+      project.valid?
+      assert_not_nil project.errors.get(:typ)
+    end
+  end
+  
+  context "#validates_inclusion_of_order_status" do
+    should "be valid with an order status included in the ORDER_STATUS list" do
+      project = Project.new(:order_status => 'offered')
+      project.valid?
+      assert_nil project.errors.get(:order_status)
+    end
+    
+    should "allow an order status with a nil value" do
+      project = Project.new(:order_status => nil)
+      project.valid?
+      assert_nil project.errors.get(:order_status)
+    end
+    
+    should "allow a blank order status" do
+      project = Project.new(:order_status => '')
+      project.valid?
+      assert_nil project.errors.get(:order_status)
+    end
+    
+    should "not be valid with an order status not included in the ORDER_STATUS list" do
+      project = Project.new(:order_status => 'not in list')
+      project.valid?
+      assert_not_nil project.errors.get(:order_status)
+    end
+  end
 
   def test_truth
     assert_kind_of Project, @ecookbook
@@ -263,23 +303,23 @@ class ProjectTest < ActiveSupport::TestCase
   def test_set_parent_should_add_roots_in_alphabetical_order
     ProjectCustomField.delete_all
     Project.delete_all
-    Project.create!(:name => 'Project C', :identifier => 'project-c').set_parent!(nil)
-    Project.create!(:name => 'Project B', :identifier => 'project-b').set_parent!(nil)
-    Project.create!(:name => 'Project D', :identifier => 'project-d').set_parent!(nil)
-    Project.create!(:name => 'Project A', :identifier => 'project-a').set_parent!(nil)
-
+    Project.create!(:name => 'Project C', :identifier => 'project-c', :typ => Project::TYPES.first).set_parent!(nil)
+    Project.create!(:name => 'Project B', :identifier => 'project-b', :typ => Project::TYPES.first).set_parent!(nil)
+    Project.create!(:name => 'Project D', :identifier => 'project-d', :typ => Project::TYPES.first).set_parent!(nil)
+    Project.create!(:name => 'Project A', :identifier => 'project-a', :typ => Project::TYPES.first).set_parent!(nil)
+    
     assert_equal 4, Project.count
     assert_equal Project.all.sort_by(&:name), Project.all.sort_by(&:lft)
   end
 
   def test_set_parent_should_add_children_in_alphabetical_order
     ProjectCustomField.delete_all
-    parent = Project.create!(:name => 'Parent', :identifier => 'parent')
-    Project.create!(:name => 'Project C', :identifier => 'project-c').set_parent!(parent)
-    Project.create!(:name => 'Project B', :identifier => 'project-b').set_parent!(parent)
-    Project.create!(:name => 'Project D', :identifier => 'project-d').set_parent!(parent)
-    Project.create!(:name => 'Project A', :identifier => 'project-a').set_parent!(parent)
-
+    parent = Project.create!(:name => 'Parent', :identifier => 'parent', :typ => Project::TYPES.first)
+    Project.create!(:name => 'Project C', :identifier => 'project-c', :typ => Project::TYPES.first).set_parent!(parent)
+    Project.create!(:name => 'Project B', :identifier => 'project-b', :typ => Project::TYPES.first).set_parent!(parent)
+    Project.create!(:name => 'Project D', :identifier => 'project-d', :typ => Project::TYPES.first).set_parent!(parent)
+    Project.create!(:name => 'Project A', :identifier => 'project-a', :typ => Project::TYPES.first).set_parent!(parent)
+    
     parent.reload
     assert_equal 4, parent.children.size
     assert_equal parent.children.all.sort_by(&:name), parent.children.all
@@ -287,12 +327,12 @@ class ProjectTest < ActiveSupport::TestCase
 
   def test_rebuild_should_sort_children_alphabetically
     ProjectCustomField.delete_all
-    parent = Project.create!(:name => 'Parent', :identifier => 'parent')
-    Project.create!(:name => 'Project C', :identifier => 'project-c').move_to_child_of(parent)
-    Project.create!(:name => 'Project B', :identifier => 'project-b').move_to_child_of(parent)
-    Project.create!(:name => 'Project D', :identifier => 'project-d').move_to_child_of(parent)
-    Project.create!(:name => 'Project A', :identifier => 'project-a').move_to_child_of(parent)
-
+    parent = Project.create!(:name => 'Parent', :identifier => 'parent', :typ => Project::TYPES.first)
+    Project.create!(:name => 'Project C', :identifier => 'project-c', :typ => Project::TYPES.first).move_to_child_of(parent)
+    Project.create!(:name => 'Project B', :identifier => 'project-b', :typ => Project::TYPES.first).move_to_child_of(parent)
+    Project.create!(:name => 'Project D', :identifier => 'project-d', :typ => Project::TYPES.first).move_to_child_of(parent)
+    Project.create!(:name => 'Project A', :identifier => 'project-a', :typ => Project::TYPES.first).move_to_child_of(parent)
+    
     Project.update_all("lft = NULL, rgt = NULL")
     Project.rebuild!
 
@@ -604,7 +644,7 @@ class ProjectTest < ActiveSupport::TestCase
 
   def test_next_identifier
     ProjectCustomField.delete_all
-    Project.create!(:name => 'last', :identifier => 'p2008040')
+    Project.create!(:name => 'last', :identifier => 'p2008040', :typ => Project::TYPES.first)
     assert_equal 'p2008041', Project.next_identifier
   end
 
@@ -785,13 +825,49 @@ class ProjectTest < ActiveSupport::TestCase
     assert_nil project.versions.detect {|v| v.completed? && v.status != 'closed'}
     assert_not_nil project.versions.detect {|v| !v.completed? && v.status == 'open'}
   end
-
+  
+  def test_numericality_of_estimated_hours
+    project = Project.new
+    project.valid?
+    assert_nil project.errors.get(:estimated_hours)
+    
+    project.estimated_hours = '1:30'
+    project.valid?
+    assert_nil project.errors.get(:estimated_hours)
+    
+    project.estimated_hours = 'f'
+    project.valid?
+    assert_nil project.errors.get(:estimated_hours)
+  end
+  
+  def test_numericality_of_billable_hours
+    project = Project.new
+    project.valid?
+    assert_nil project.errors.get(:billable_hours)
+    
+    project.billable_hours = '1:30'
+    project.valid?
+    assert_nil project.errors.get(:billable_hours)
+    
+    project.billable_hours = 'f'
+    project.valid?
+    assert_nil project.errors.get(:billable_hours)
+  end
+  
+  def test_convertion_of_estimated_hours
+    assert_equal 1.5, Project.new(:estimated_hours => '1:30').estimated_hours
+  end
+  
+  def test_convertion_of_billable_hours
+    assert_equal 1.5, Project.new(:billable_hours => '1:30').billable_hours
+  end
+  
   context "Project#copy" do
     setup do
       ProjectCustomField.destroy_all # Custom values are a mess to isolate in tests
       Project.destroy_all :identifier => "copy-test"
       @source_project = Project.find(2)
-      @project = Project.new(:name => 'Copy Test', :identifier => 'copy-test')
+      @project = Project.new(:name => 'Copy Test', :identifier => 'copy-test', :typ => Project::TYPES.first)
       @project.trackers = @source_project.trackers
       @project.enabled_module_names = @source_project.enabled_modules.collect(&:name)
     end
@@ -1172,5 +1248,14 @@ class ProjectTest < ActiveSupport::TestCase
       assert !@project.notified_users.include?(@only_owned_user)
     end
   end
-
+  
+  context "#updated_on_gte" do
+    should "return all projects from 2006-07-19" do
+      assert_equal 6, Project.updated_on_gte('2006-07-19').size
+    end
+    
+    should "return all time entries from 2006-07-20" do
+      assert Project.updated_on_gte('2006-07-20').empty?
+    end
+  end
 end

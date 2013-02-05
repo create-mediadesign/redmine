@@ -8,6 +8,7 @@
 <p><%= f.text_field :wiki_page_title, :label => :label_wiki_page, :size => 60, :disabled => @project.wiki.nil? %></p>
 <p><%= f.text_field :effective_date, :size => 10 %><%= calendar_for('version_effective_date') %></p>
 <p><%= f.select :sharing, @version.allowed_sharings.collect {|v| [format_version_sharing(v), v]} %></p>
+<p><%= f.text_field :projected_hours, :size => 3 %> <%= l(:field_hours) %></p>
 
 <% @version.custom_field_values.each do |value| %>
   <p><%= custom_field_tag_with_label :version, value %></p>

@@ -21,10 +21,15 @@ class Project < ActiveRecord::Base
   # Project statuses
   STATUS_ACTIVE     = 1
   STATUS_ARCHIVED   = 9
-
+  
+  ORDER_STATUS = %w{pre-Sales offered ordered closed}
+  
   # Maximum length for project identifiers
   IDENTIFIER_MAX_LENGTH = 100
-
+  
+  # Project types
+  TYPES = YAML.load(File.read(File.join(Rails.root, 'config', 'project_types.yml')))
+  
   # Specific overidden Activities
   has_many :time_entry_activities
   has_many :members, :include => [:user, :roles], :conditions => "#{User.table_name}.type='User' AND #{User.table_name}.status=#{User::STATUS_ACTIVE}"
@@ -68,8 +73,8 @@ class Project < ActiveRecord::Base
                 :author => nil
 
   attr_protected :status
-
-  validates_presence_of :name, :identifier
+  
+  validates_presence_of :name, :identifier, :typ
   validates_uniqueness_of :identifier
   validates_associated :repository, :wiki
   validates_length_of :name, :maximum => 255
@@ -79,6 +84,9 @@ class Project < ActiveRecord::Base
   validates_format_of :identifier, :with => /^(?!\d+$)[a-z0-9\-_]*$/, :if => Proc.new { |p| p.identifier_changed? }
   # reserved words
   validates_exclusion_of :identifier, :in => %w( new )
+  validates_numericality_of :estimated_hours, :billable_hours, :allow_nil => true
+  validates_inclusion_of :typ, :in => TYPES
+  validates_inclusion_of :order_status, :in => ORDER_STATUS, :allow_blank => true
 
   before_destroy :delete_all_members
 
@@ -87,6 +95,7 @@ class Project < ActiveRecord::Base
   scope :status, lambda {|arg| arg.blank? ? {} : {:conditions => {:status => arg.to_i}} }
   scope :all_public, { :conditions => { :is_public => true } }
   scope :visible, lambda {|*args| {:conditions => Project.visible_condition(args.shift || User.current, *args) }}
+  scope :updated_on_gte, lambda { |date| { :conditions => ['updated_on >= ?', date] } }
   scope :allowed_to, lambda {|*args| 
     user = User.current
     permission = nil
@@ -105,6 +114,9 @@ class Project < ActiveRecord::Base
       pattern = "%#{arg.to_s.strip.downcase}%"
       {:conditions => ["LOWER(identifier) LIKE :p OR LOWER(name) LIKE :p", {:p => pattern}]}
     end
+  }
+  scope :skip_dummy, lambda {
+    where ['typ != ?', 'Dummy']
   }
 
   def initialize(attributes=nil, *args)
@@ -609,6 +621,16 @@ class Project < ActiveRecord::Base
     target.destroy unless target.blank?
   end
 
+  # Transforms hours to seconds.
+  def estimated_hours=(h)
+    write_attribute :estimated_hours, (h.is_a?(String) ? h.to_hours : h)
+  end
+  
+  # Transforms hours to seconds.
+  def billable_hours=(h)
+    write_attribute :billable_hours, (h.is_a?(String) ? h.to_hours : h)
+  end
+
   safe_attributes 'name',
     'description',
     'homepage',
@@ -617,7 +639,12 @@ class Project < ActiveRecord::Base
     'custom_field_values',
     'custom_fields',
     'tracker_ids',
-    'issue_custom_field_ids'
+    'issue_custom_field_ids',
+    'estimated_hours',
+    'billable_hours',
+    'typ',
+    'order_status',
+    'release_date'
 
   safe_attributes 'enabled_module_names',
     :if => lambda {|project, user| project.new_record? || user.allowed_to?(:select_project_modules, project) }

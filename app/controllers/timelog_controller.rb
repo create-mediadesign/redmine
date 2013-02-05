@@ -42,6 +42,7 @@ class TimelogController < ApplicationController
     sort_update 'spent_on' => ['spent_on', "#{TimeEntry.table_name}.created_on"],
                 'user' => 'user_id',
                 'activity' => 'activity_id',
+                'department' => 'department_id',
                 'project' => "#{Project.table_name}.name",
                 'issue' => 'issue_id',
                 'hours' => 'hours'
@@ -123,7 +124,7 @@ class TimelogController < ApplicationController
   end
 
   def create
-    @time_entry ||= TimeEntry.new(:project => @project, :issue => @issue, :user => User.current, :spent_on => User.current.today)
+    @time_entry ||= TimeEntry.new(:project => @project, :issue => @issue, :user => User.current, :spent_on => User.current.today, :department_id => params[:time_entry][:department_id])
     @time_entry.safe_attributes = params[:time_entry]
 
     call_hook(:controller_timelog_edit_before_save, { :params => params, :time_entry => @time_entry })

@@ -6,6 +6,7 @@
 /config/email.yml
 /config/initializers/session_store.rb
 /config/initializers/secret_token.rb
+/config/initializers/airbrake.rb
 /coverage
 /db/*.db
 /db/*.sqlite3
@@ -24,9 +25,10 @@
 /tmp/test/*
 /vendor/cache
 /vendor/rails
+/vendor/ruby
 *.rbc
 
 /.bundle
-/Gemfile.lock
 /Gemfile.local
-
+redmine.tmproj
+/config/project_types.yml

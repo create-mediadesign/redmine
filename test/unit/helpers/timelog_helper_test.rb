@@ -29,8 +29,8 @@ class TimelogHelperTest < ActionView::TestCase
                       :wikis, :wiki_pages, :wiki_contents,
                       :boards, :messages,
                       :attachments,
-                      :enumerations
-
+                      :enumerations, :departments
+  
   def setup
     super
   end
@@ -53,5 +53,12 @@ class TimelogHelperTest < ActionView::TestCase
     activities = activity_collection_for_select_options(nil, project)
     assert !activities.include?(["Design", 9]), "System activity found in: " + activities.inspect
     assert activities.include?(["Design override", override_activity.id]), "Override activity not found in: " + activities.inspect
+  end
+  
+  def test_options_for_department
+    options = options_for_department(Department.roots)
+    assert_equal ['Marketing', 102], options[0]
+    assert_equal ['Sales', 100], options[1]
+    assert_equal ['--Sales1', 101], options[2]
   end
 end

@@ -65,7 +65,7 @@ class IssuesControllerTransactionTest < ActionController::TestCase
                 :lock_version => (issue.lock_version - 1)
               },
               :notes => 'My notes',
-              :time_entry => { :hours => '2.5', :comments => '', :activity_id => TimeEntryActivity.first.id }
+              :time_entry => { :hours => '2.5', :comments => '', :activity_id => TimeEntryActivity.first.id, :department_id => '100' }
       end
     end
 
@@ -93,7 +93,7 @@ class IssuesControllerTransactionTest < ActionController::TestCase
                 },
                 :notes => 'My notes',
                 :attachments => {'1' => {'file' => uploaded_test_file('testfile.txt', 'text/plain')}},
-                :time_entry => { :hours => '2.5', :comments => '', :activity_id => TimeEntryActivity.first.id }
+                :time_entry => { :hours => '2.5', :comments => '', :activity_id => TimeEntryActivity.first.id, :department_id => '100' }
         end
       end
     end

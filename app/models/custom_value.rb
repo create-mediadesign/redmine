@@ -18,6 +18,8 @@
 class CustomValue < ActiveRecord::Base
   belongs_to :custom_field
   belongs_to :customized, :polymorphic => true
+  
+  after_update :update_projects_updated_on, :if => Proc.new { |value| value.customized_type == 'Project' }
 
   def initialize(attributes=nil, *args)
     super
@@ -45,5 +47,10 @@ class CustomValue < ActiveRecord::Base
 
   def to_s
     value.to_s
+  end
+  
+protected
+  def update_projects_updated_on
+    Project.find(customized_id).update_attribute(:updated_on, Time.now) if value_changed?
   end
 end

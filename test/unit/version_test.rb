@@ -106,11 +106,29 @@ class VersionTest < ActiveSupport::TestCase
     assert_progress_equal (25.0*0.2 + 25.0*1 + 10.0*0.3 + 40.0*0.1)/100.0*100, v.completed_pourcent
     assert_progress_equal 25.0/100.0*100, v.closed_pourcent
   end
+  
+  def test_numericality_of_projected_hours
+    version = Version.new
+    version.valid?
+    assert_nil version.errors.get(:projected_hours)
+    
+    version.projected_hours = '1:30'
+    version.valid?
+    assert_nil version.errors.get(:projected_hours)
+    
+    version.projected_hours = 'f'
+    version.valid?
+    assert_nil version.errors.get(:projected_hours)
+  end
+  
+  def test_convertion_of_projected_hours
+    assert_equal 1.5, Version.new(:projected_hours => '1:30').projected_hours
+  end
 
   context "#behind_schedule?" do
     setup do
       ProjectCustomField.destroy_all # Custom values are a mess to isolate in tests
-      @project = Project.create!(:name => 'test0', :identifier => 'test0')
+      @project = Project.create!(:name => 'test0', :identifier => 'test0', :typ => Project::TYPES.first)
       @project.trackers << Tracker.create!(:name => 'track')
 
       @version = Version.create!(:project => @project, :effective_date => nil, :name => 'version')

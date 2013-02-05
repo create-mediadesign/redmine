@@ -26,7 +26,7 @@ class TimelogControllerTest < ActionController::TestCase
   fixtures :projects, :enabled_modules, :roles, :members,
            :member_roles, :issues, :time_entries, :users,
            :trackers, :enumerations, :issue_statuses,
-           :custom_fields, :custom_values
+           :custom_fields, :custom_values, :departments
 
   include Redmine::I18n
 
@@ -116,7 +116,8 @@ class TimelogControllerTest < ActionController::TestCase
                                 :activity_id => '11',
                                 :spent_on => '2008-03-14',
                                 :issue_id => '1',
-                                :hours => '7.3'}
+                                :hours => '7.3',
+                                :department_id => '100'}
     assert_redirected_to :action => 'index', :project_id => 'ecookbook'
 
     i = Issue.find(1)
@@ -124,6 +125,7 @@ class TimelogControllerTest < ActionController::TestCase
     assert_not_nil t
     assert_equal 11, t.activity_id
     assert_equal 7.3, t.hours
+    assert_equal 100, t.department_id
     assert_equal 3, t.user_id
     assert_equal i, t.issue
     assert_equal i.project, t.project
@@ -139,13 +141,15 @@ class TimelogControllerTest < ActionController::TestCase
                                 :activity_id => '11',
                                 :issue_id => '',
                                 :spent_on => '2008-03-14',
-                                :hours => '7.3'}
+                                :hours => '7.3',
+                                :department_id => '100'}
     assert_redirected_to :action => 'index', :project_id => 'ecookbook'
 
     t = TimeEntry.find_by_comments('Some work on TimelogControllerTest')
     assert_not_nil t
     assert_equal 11, t.activity_id
     assert_equal 7.3, t.hours
+    assert_equal 100, t.department_id
     assert_equal 3, t.user_id
   end
 
@@ -155,7 +159,8 @@ class TimelogControllerTest < ActionController::TestCase
                 :time_entry => {:activity_id => '11',
                                 :issue_id => '',
                                 :spent_on => '2008-03-14',
-                                :hours => '7.3'},
+                                :hours => '7.3',
+                                :department_id => '100'},
                 :continue => '1'
     assert_redirected_to '/projects/ecookbook/time_entries/new?time_entry%5Bactivity_id%5D=11&time_entry%5Bissue_id%5D='
   end
@@ -166,7 +171,8 @@ class TimelogControllerTest < ActionController::TestCase
                 :time_entry => {:activity_id => '11',
                                 :issue_id => '1',
                                 :spent_on => '2008-03-14',
-                                :hours => '7.3'},
+                                :hours => '7.3',
+                                :department_id => '100'},
                 :continue => '1'
     assert_redirected_to '/projects/ecookbook/issues/1/time_entries/new?time_entry%5Bactivity_id%5D=11&time_entry%5Bissue_id%5D=1'
   end
@@ -177,7 +183,8 @@ class TimelogControllerTest < ActionController::TestCase
                                 :activity_id => '11',
                                 :issue_id => '',
                                 :spent_on => '2008-03-14',
-                                :hours => '7.3'},
+                                :hours => '7.3',
+                                :department_id => '100'},
                   :continue => '1'
 
     assert_redirected_to '/time_entries/new?time_entry%5Bactivity_id%5D=11&time_entry%5Bissue_id%5D=&time_entry%5Bproject_id%5D=1'
@@ -190,7 +197,8 @@ class TimelogControllerTest < ActionController::TestCase
                 :time_entry => {:activity_id => '11',
                                 :issue_id => '',
                                 :spent_on => '2008-03-14',
-                                :hours => '7.3'}
+                                :hours => '7.3',
+                                :department_id => '100'}
 
     assert_response 403
   end
@@ -201,7 +209,8 @@ class TimelogControllerTest < ActionController::TestCase
                 :time_entry => {:activity_id => '',
                                 :issue_id => '',
                                 :spent_on => '2008-03-14',
-                                :hours => '7.3'}
+                                :hours => '7.3',
+                                :department_id => '100'}
 
     assert_response :success
     assert_template 'new'
@@ -214,7 +223,8 @@ class TimelogControllerTest < ActionController::TestCase
                                   :activity_id => '11',
                                   :issue_id => '',
                                   :spent_on => '2008-03-14',
-                                  :hours => '7.3'}
+                                  :hours => '7.3',
+                                  :department_id => '100'}
     end
 
     assert_redirected_to '/projects/ecookbook/time_entries'
@@ -229,7 +239,8 @@ class TimelogControllerTest < ActionController::TestCase
                                   :activity_id => '11',
                                   :issue_id => '5',
                                   :spent_on => '2008-03-14',
-                                  :hours => '7.3'}
+                                  :hours => '7.3',
+                                  :department_id => '100'}
     end
 
     assert_response :success
@@ -245,7 +256,8 @@ class TimelogControllerTest < ActionController::TestCase
                                   :activity_id => '11',
                                   :issue_id => '',
                                   :spent_on => '2008-03-14',
-                                  :hours => '7.3'}
+                                  :hours => '7.3',
+                                  :department_id => '100'}
     end
 
     assert_response 403
@@ -258,7 +270,8 @@ class TimelogControllerTest < ActionController::TestCase
                                   :activity_id => '11',
                                   :issue_id => '',
                                   :spent_on => '2008-03-14',
-                                  :hours => ''}
+                                  :hours => '',
+                                  :department_id => '100'}
     end
 
     assert_response :success
@@ -569,9 +582,9 @@ class TimelogControllerTest < ActionController::TestCase
   end
 
   def test_index_should_sort_by_spent_on_and_created_on
-    t1 = TimeEntry.create!(:user => User.find(1), :project => Project.find(1), :hours => 1, :spent_on => '2012-06-16', :created_on => '2012-06-16 20:00:00', :activity_id => 10)
-    t2 = TimeEntry.create!(:user => User.find(1), :project => Project.find(1), :hours => 1, :spent_on => '2012-06-16', :created_on => '2012-06-16 20:05:00', :activity_id => 10)
-    t3 = TimeEntry.create!(:user => User.find(1), :project => Project.find(1), :hours => 1, :spent_on => '2012-06-15', :created_on => '2012-06-16 20:10:00', :activity_id => 10)
+    t1 = TimeEntry.create!(:user => User.find(1), :project => Project.find(1), :hours => 1, :spent_on => '2012-06-16', :created_on => '2012-06-16 20:00:00', :activity_id => 10, :department_id => 100)
+    t2 = TimeEntry.create!(:user => User.find(1), :project => Project.find(1), :hours => 1, :spent_on => '2012-06-16', :created_on => '2012-06-16 20:05:00', :activity_id => 10, :department_id => 100)
+    t3 = TimeEntry.create!(:user => User.find(1), :project => Project.find(1), :hours => 1, :spent_on => '2012-06-15', :created_on => '2012-06-16 20:10:00', :activity_id => 10, :department_id => 100)
 
     get :index, :project_id => 1, :from => '2012-06-15', :to => '2012-06-16'
     assert_response :success
@@ -595,8 +608,8 @@ class TimelogControllerTest < ActionController::TestCase
     get :index, :format => 'csv'
     assert_response :success
     assert_equal 'text/csv; header=present', @response.content_type
-    assert @response.body.include?("Date,User,Activity,Project,Issue,Tracker,Subject,Hours,Comment,Overtime\n")
-    assert @response.body.include?("\n04/21/2007,redMine Admin,Design,eCookbook,3,Bug,Error 281 when updating a recipe,1.0,\"\",\"\"\n")
+    assert @response.body.include?("Date,User,Activity,Department,Project,Issue,Tracker,Subject,Hours,Comment,Overtime\n")
+    assert @response.body.include?("\n04/21/2007,redMine Admin,Design,Sales,eCookbook,3,Bug,Error 281 when updating a recipe,1.0,\"\",\"\"\n")
   end
 
   def test_index_csv_export
@@ -604,8 +617,8 @@ class TimelogControllerTest < ActionController::TestCase
     get :index, :project_id => 1, :format => 'csv'
     assert_response :success
     assert_equal 'text/csv; header=present', @response.content_type
-    assert @response.body.include?("Date,User,Activity,Project,Issue,Tracker,Subject,Hours,Comment,Overtime\n")
-    assert @response.body.include?("\n04/21/2007,redMine Admin,Design,eCookbook,3,Bug,Error 281 when updating a recipe,1.0,\"\",\"\"\n")
+    assert @response.body.include?("Date,User,Activity,Department,Project,Issue,Tracker,Subject,Hours,Comment,Overtime\n")
+    assert @response.body.include?("\n04/21/2007,redMine Admin,Design,Sales,eCookbook,3,Bug,Error 281 when updating a recipe,1.0,\"\",\"\"\n")
   end
 
   def test_index_csv_export_with_multi_custom_field
@@ -637,7 +650,8 @@ class TimelogControllerTest < ActionController::TestCase
                                 :activity_id => '11',
                                 :issue_id => '',
                                 :spent_on => '2011-11-10',
-                                :hours => '7.3'}
+                                :hours => '7.3',
+                                :department_id => '100'}
     assert_redirected_to :action => 'index', :project_id => 'ecookbook'
 
     t = TimeEntry.find_by_comments(str_utf8)
@@ -674,7 +688,8 @@ class TimelogControllerTest < ActionController::TestCase
                                 :activity_id => '11',
                                 :issue_id => '',
                                 :spent_on => '2011-11-10',
-                                :hours => '7.3'}
+                                :hours => '7.3',
+                                :department_id => '100'}
     assert_redirected_to :action => 'index', :project_id => 'ecookbook'
 
     t = TimeEntry.find_by_comments(str_utf8)
@@ -693,7 +708,7 @@ class TimelogControllerTest < ActionController::TestCase
       s1.force_encoding('Big5')
     end
     assert ar[0].include?(s1)
-    s2 = ar[1].split(",")[8]
+    s2 = ar[1].split(",")[9]
     if s2.respond_to?(:force_encoding)
       s3 = "\xa5H?"
       s3.force_encoding('Big5')
@@ -714,7 +729,8 @@ class TimelogControllerTest < ActionController::TestCase
                              :project  => Project.find(1),
                              :user     => user,
                              :activity => TimeEntryActivity.find_by_name('Design'),
-                             :comments => str1)
+                             :comments => str1,
+                             :department_id => '100')
       te2 = TimeEntry.find_by_comments(str1)
       assert_not_nil te2
       assert_equal 999.9, te2.hours
@@ -726,7 +742,7 @@ class TimelogControllerTest < ActionController::TestCase
       assert_equal 'text/csv; header=present', @response.content_type
 
       ar = @response.body.chomp.split("\n")
-      s2 = ar[1].split(",")[7]
+      s2 = ar[1].split(",")[8]
       assert_equal '999.9', s2
 
       str_tw = "Traditional Chinese (\xe7\xb9\x81\xe9\xab\x94\xe4\xb8\xad\xe6\x96\x87)"
@@ -748,7 +764,8 @@ class TimelogControllerTest < ActionController::TestCase
                              :project  => Project.find(1),
                              :user     => user,
                              :activity => TimeEntryActivity.find_by_name('Design'),
-                             :comments => str1)
+                             :comments => str1,
+                             :department_id => '100')
       te2 = TimeEntry.find_by_comments(str1)
       assert_not_nil te2
       assert_equal 999.9, te2.hours
@@ -760,7 +777,7 @@ class TimelogControllerTest < ActionController::TestCase
       assert_equal 'text/csv; header=present', @response.content_type
 
       ar = @response.body.chomp.split("\n")
-      s2 = ar[1].split(";")[7]
+      s2 = ar[1].split(";")[8]
       assert_equal '999,9', s2
 
       str_fr = "Fran\xc3\xa7ais"

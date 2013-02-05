@@ -82,7 +82,7 @@ class TimeEntryReportsControllerTest < ActionController::TestCase
 
   def test_report_custom_field_criteria_with_multiple_values
     field = TimeEntryCustomField.create!(:name => 'multi', :field_format => 'list', :possible_values => ['value1', 'value2'])
-    entry = TimeEntry.create!(:project => Project.find(1), :hours => 1, :activity_id => 10, :user => User.find(2), :spent_on => Date.today)
+    entry = TimeEntry.create!(:project => Project.find(1), :hours => 1, :activity_id => 10, :user => User.find(2), :spent_on => Date.today, :department_id => 1)
     CustomValue.create!(:customized => entry, :custom_field => field, :value => 'value1')
     CustomValue.create!(:customized => entry, :custom_field => field, :value => 'value2')
 
@@ -187,7 +187,8 @@ class TimeEntryReportsControllerTest < ActionController::TestCase
                            :project  => Project.find(1),
                            :user     => user,
                            :activity => TimeEntryActivity.find_by_name('Design'),
-                           :comments => comments)
+                           :comments => comments,
+                           :department_id => 1)
 
     te2 = TimeEntry.find_by_comments(comments)
     assert_not_nil te2
@@ -238,7 +239,8 @@ class TimeEntryReportsControllerTest < ActionController::TestCase
                            :project  => Project.find(1),
                            :user     => user,
                            :activity => TimeEntryActivity.find_by_name('Design'),
-                           :comments => comments)
+                           :comments => comments,
+                           :department_id => 1)
 
     te2 = TimeEntry.find_by_comments(comments)
     assert_not_nil te2
@@ -279,7 +281,8 @@ class TimeEntryReportsControllerTest < ActionController::TestCase
                              :project  => Project.find(1),
                              :user     => user,
                              :activity => TimeEntryActivity.find_by_name('Design'),
-                             :comments => str1)
+                             :comments => str1,
+                             :department_id => 1)
 
       te2 = TimeEntry.find_by_comments(str1)
       assert_not_nil te2

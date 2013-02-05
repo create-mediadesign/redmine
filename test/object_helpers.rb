@@ -33,6 +33,7 @@ module ObjectHelpers
     project = Project.new(attributes)
     project.name = @generated_project_identifier if project.name.blank?
     project.identifier = @generated_project_identifier if project.identifier.blank?
+    project.typ = Project::TYPES.first if project.typ.blank?
     yield project if block_given?
     project.save!
     project

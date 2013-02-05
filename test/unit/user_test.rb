@@ -281,7 +281,7 @@ class UserTest < ActiveSupport::TestCase
   end
 
   def test_destroy_should_update_time_entries
-    entry = TimeEntry.new(:hours => '2', :spent_on => Date.today, :activity => TimeEntryActivity.create!(:name => 'foo'))
+    entry = TimeEntry.new(:hours => '2', :spent_on => Date.today, :activity => TimeEntryActivity.create!(:name => 'foo'), :department_id => 100)
     entry.project_id = 1
     entry.user_id = 2
     entry.save!
@@ -1055,4 +1055,13 @@ class UserTest < ActiveSupport::TestCase
     puts "Skipping openid tests."
   end
 
+  context "#updated_on_gte" do
+    should "return all users from 2006-07-19" do
+      assert_equal 9, User.updated_on_gte('2006-07-19').size
+    end
+    
+    should "return all users from 2006-07-20" do
+      assert User.updated_on_gte('2006-07-20').empty?
+    end
+  end
 end

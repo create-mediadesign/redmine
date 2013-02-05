@@ -26,7 +26,7 @@ class TimeEntryTest < ActiveSupport::TestCase
            :issue_categories, :enumerations,
            :groups_users,
            :enabled_modules,
-           :workflows
+           :workflows, :departments
 
   def test_hours_format
     assertions = { "2"      => 2.0,
@@ -92,6 +92,61 @@ class TimeEntryTest < ActiveSupport::TestCase
     c = TimeEntry.new
     c.spent_on = Time.now
     assert_equal Date.today, c.spent_on
+  end
+  
+  def test_update_user_last_department_after_create
+    @user = users(:users_001)
+    @department = departments(:departments_003)
+    @public_project = Project.generate!(:is_public => true)
+    @issue = Issue.generate_for_project!(@public_project)
+    @time_entry = TimeEntry.create!(:spent_on => '2010-01-01',
+                                    :hours    => 2,
+                                    :issue => @issue,
+                                    :project => @public_project,
+                                    :user => @user,
+                                    :department => @department)
+    assert_equal @department, @user.last_department
+  end
+  
+  def test_setting_of_department_from_user
+    @department = departments(:departments_003)
+    @user = User.current = users(:users_001)
+    @user.last_department = @department
+    @time_entry = TimeEntry.new
+    assert_equal @user.last_department, @time_entry.department
+  end
+  
+  context "#updated_on_gte" do
+    should "return all time entries from 2007-03-23" do
+      assert_equal 5, TimeEntry.updated_on_gte('2007-03-23').size
+    end
+    
+    should "return all time entries from 2007-04-21" do
+      assert_equal 3, TimeEntry.updated_on_gte('2007-04-21').size
+    end
+  end
+  
+  context "#for_user" do
+    should "return all time entries for a given user" do
+      assert_equal [time_entries(:time_entries_002), time_entries(:time_entries_003), time_entries(:time_entries_004), time_entries(:time_entries_005)], TimeEntry.for_user(users(:users_001))
+    end
+  end
+  
+  context "#for_today" do
+    should "return all time entries for today" do
+      user = users(:users_001)
+      department = departments(:departments_003)
+      public_project = Project.generate!(:is_public => true)
+      issue = Issue.generate_for_project!(public_project)
+      time_entry = TimeEntry.create!(:spent_on => Date.today,
+                                     :hours    => 2,
+                                     :issue => issue,
+                                     :project => public_project,
+                                     :user => user,
+                                     :department => department)
+                                       
+      assert_equal [time_entry], TimeEntry.for_today
+    end
   end
 
   def test_validate_time_entry

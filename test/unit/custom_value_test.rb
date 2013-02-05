@@ -18,7 +18,7 @@
 require File.expand_path('../../test_helper', __FILE__)
 
 class CustomValueTest < ActiveSupport::TestCase
-  fixtures :custom_fields, :custom_values, :users
+  fixtures :projects, :custom_values
 
   def test_default_value
     field = CustomField.find_by_default_value('Default string')
@@ -35,5 +35,17 @@ class CustomValueTest < ActiveSupport::TestCase
     # Rails uses top level sti class for polymorphic association. See #3978.
     assert !User.find(4).custom_values.empty?
     assert !CustomValue.find(2).customized.nil?
+  end
+  
+  context('#update_projects_updated_on') do
+    setup do
+      @project = projects(:projects_001)
+      @value = custom_values(:custom_values_007)
+    end
+    
+    should('update the projects updated_on attribute') do
+      @value.update_attribute(:value, 'Changed')
+      assert_equal(Time.now.getutc.to_s(:db), @project.reload.updated_on.to_s(:db))
+    end
   end
 end

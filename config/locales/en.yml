@@ -291,8 +291,11 @@ en:
   field_issue_to: Related issue
   field_delay: Delay
   field_assignable: Issues can be assigned to this role
+  field_blamable: This role can be responsible for projects
   field_redirect_existing_links: Redirect existing links
   field_estimated_hours: Estimated time
+  field_billable_hours: Billable time
+  field_projected_hours: Projected time
   field_column_names: Columns
   field_time_entries: Log time
   field_time_zone: Time zone
@@ -323,6 +326,10 @@ en:
   field_repository_is_default: Main repository
   field_multiple: Multiple values
   field_ldap_filter: LDAP filter
+  field_department: Department
+  field_typ: Type
+  field_order_status: Order status
+  field_release_date: Release date
 
   setting_app_title: Application title
   setting_app_subtitle: Application subtitle
@@ -703,6 +710,7 @@ en:
   label_changes_details: Details of all changes
   label_issue_tracking: Issue tracking
   label_spent_time: Spent time
+  label_todays_total_hours: My working time for today for all projects
   label_overall_spent_time: Overall spent time
   label_f_hour: "%{value} hour"
   label_f_hour_plural: "%{value} hours"
@@ -847,6 +855,7 @@ en:
   label_item_position: "%{position} of %{count}"
   label_completed_versions: Completed versions
   label_search_for_watchers: Search for watchers to add
+  label_department: Department
 
   button_login: Login
   button_submit: Submit

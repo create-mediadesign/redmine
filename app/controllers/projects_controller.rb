@@ -164,7 +164,8 @@ class ProjectsController < ApplicationController
     end
 
     @key = User.current.rss_key
-
+    @todays_total_hours = TimeEntry.for_today.for_user(User.current).to_a.sum(&:hours).to_f
+    
     respond_to do |format|
       format.html
       format.api

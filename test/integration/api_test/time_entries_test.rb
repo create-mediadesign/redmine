@@ -66,7 +66,7 @@ class ApiTest::TimeEntriesTest < ActionController::IntegrationTest
     context "with issue_id" do
       should "return create time entry" do
         assert_difference 'TimeEntry.count' do
-          post '/time_entries.xml', {:time_entry => {:issue_id => '1', :spent_on => '2010-12-02', :hours => '3.5', :activity_id => '11'}}, credentials('jsmith')
+          post '/time_entries.xml', {:time_entry => {:issue_id => '1', :spent_on => '2010-12-02', :hours => '3.5', :activity_id => '11', :department_id => '100'}}, credentials('jsmith')
         end
         assert_response :created
         assert_equal 'application/xml', @response.content_type
@@ -85,7 +85,7 @@ class ApiTest::TimeEntriesTest < ActionController::IntegrationTest
 
         assert_difference 'TimeEntry.count' do
           post '/time_entries.xml', {:time_entry => {
-            :issue_id => '1', :spent_on => '2010-12-02', :hours => '3.5', :activity_id => '11', :custom_fields => [{:id => field.id.to_s, :value => 'accepted'}]
+            :issue_id => '1', :spent_on => '2010-12-02', :hours => '3.5', :activity_id => '11', :department_id => '100', :custom_fields => [{:id => field.id.to_s, :value => 'accepted'}]
           }}, credentials('jsmith')
         end
         assert_response :created
@@ -99,7 +99,7 @@ class ApiTest::TimeEntriesTest < ActionController::IntegrationTest
     context "with project_id" do
       should "return create time entry" do
         assert_difference 'TimeEntry.count' do
-          post '/time_entries.xml', {:time_entry => {:project_id => '1', :spent_on => '2010-12-02', :hours => '3.5', :activity_id => '11'}}, credentials('jsmith')
+          post '/time_entries.xml', {:time_entry => {:project_id => '1', :spent_on => '2010-12-02', :hours => '3.5', :activity_id => '11', :department_id => '100'}}, credentials('jsmith')
         end
         assert_response :created
         assert_equal 'application/xml', @response.content_type

@@ -295,14 +295,18 @@ de:
   field_subproject: Unterprojekt von
   field_hours: Stunden
   field_activity: Aktivität
+  field_department: Abteilung
   field_spent_on: Datum
   field_identifier: Kennung
   field_is_filter: Als Filter benutzen
   field_issue_to: Zugehöriges Ticket
   field_delay: Pufferzeit
   field_assignable: Tickets können dieser Rolle zugewiesen werden
+  field_blamable: Dieser Rolle kann für ein Projekt verantwortlich gemacht werden
   field_redirect_existing_links: Existierende Links umleiten
   field_estimated_hours: Geschätzter Aufwand
+  field_billable_hours: Verrechenbare Zeit
+  field_projected_hours: Vorgeschlagener Aufwand
   field_column_names: Spalten
   field_time_entries: Logzeit
   field_time_zone: Zeitzone
@@ -317,6 +321,9 @@ de:
   field_group_by: Gruppiere Ergebnisse nach
   field_sharing: Gemeinsame Verwendung
   field_parent_issue: Übergeordnete Aufgabe
+  field_typ: Type
+  field_order_status: Bestell Status
+  field_release_date: Veröffentlichungs Datum
 
   setting_app_title: Applikations-Titel
   setting_app_subtitle: Applikations-Untertitel
@@ -671,6 +678,7 @@ de:
   label_changes_details: Details aller Änderungen
   label_issue_tracking: Tickets
   label_spent_time: Aufgewendete Zeit
+  label_todays_total_hours: Meine heutige Arbeitszeit für alle Projekte
   label_overall_spent_time: Aufgewendete Zeit aller Projekte anzeigen
   label_f_hour: "%{value} Stunde"
   label_f_hour_plural: "%{value} Stunden"
@@ -796,7 +804,8 @@ de:
   label_project_copy_notifications: Sende Mailbenachrichtigungen beim Kopieren des Projekts.
   label_principal_search: "Nach Benutzer oder Gruppe suchen:"
   label_user_search: "Nach Benutzer suchen:"
-
+  label_department: Abteilung
+  
   button_login: Anmelden
   button_submit: OK
   button_save: Speichern

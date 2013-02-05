@@ -140,13 +140,13 @@ class ApiTest::ProjectsTest < ActionController::IntegrationTest
     context "with valid parameters" do
       setup do
         Setting.default_projects_modules = ['issue_tracking', 'repository']
-        @parameters = {:project => {:name => 'API test', :identifier => 'api-test'}}
+        @parameters = {:project => {:name => 'API test', :identifier => 'api-test', :typ => Project::TYPES.first}}
       end
 
       context ".xml" do
         should_allow_api_authentication(:post,
                                         '/projects.xml',
-                                        {:project => {:name => 'API test', :identifier => 'api-test'}},
+                                        {:project => {:name => 'API test', :identifier => 'api-test', :typ => Project::TYPES.first}},
                                         {:success_code => :created})
 
 

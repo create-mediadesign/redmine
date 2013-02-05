@@ -373,13 +373,13 @@ class IssueNestedSetTest < ActiveSupport::TestCase
   end
 
   def test_project_copy_should_copy_issue_tree
-    p = Project.create!(:name => 'Tree copy', :identifier => 'tree-copy', :tracker_ids => [1, 2])
+    p = Project.create!(:name => 'Tree copy', :identifier => 'tree-copy', :tracker_ids => [1, 2], :typ => Project::TYPES.first)
     i1 = create_issue!(:project_id => p.id, :subject => 'i1')
     i2 = create_issue!(:project_id => p.id, :subject => 'i2', :parent_issue_id => i1.id)
     i3 = create_issue!(:project_id => p.id, :subject => 'i3', :parent_issue_id => i1.id)
     i4 = create_issue!(:project_id => p.id, :subject => 'i4', :parent_issue_id => i2.id)
     i5 = create_issue!(:project_id => p.id, :subject => 'i5')
-    c = Project.new(:name => 'Copy', :identifier => 'copy', :tracker_ids => [1, 2])
+    c = Project.new(:name => 'Copy', :identifier => 'copy', :tracker_ids => [1, 2], :typ => Project::TYPES.first)
     c.copy(p, :only => 'issues')
     c.reload
 

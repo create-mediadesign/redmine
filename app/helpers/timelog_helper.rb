@@ -84,7 +84,15 @@ module TimelogHelper
                         [l(:label_this_year), 'current_year']],
                         value)
   end
-
+  
+  # Returns an option array for the given departments. Builds a tree structure.
+  def options_for_department(departments, prefix='')
+    departments.map do |department|
+      a = [["#{prefix}#{department.name}", department.id]]
+      department.children.empty? ? a : a.concat(options_for_department(department.children, prefix+'--'))
+    end.flatten(1)
+  end
+  
   def entries_to_csv(entries)
     decimal_separator = l(:general_csv_decimal_separator)
     custom_fields = TimeEntryCustomField.find(:all)
@@ -93,6 +101,7 @@ module TimelogHelper
       headers = [l(:field_spent_on),
                  l(:field_user),
                  l(:field_activity),
+                 l(:field_department),
                  l(:field_project),
                  l(:field_issue),
                  l(:field_tracker),
@@ -111,6 +120,7 @@ module TimelogHelper
         fields = [format_date(entry.spent_on),
                   entry.user,
                   entry.activity,
+                  entry.department,
                   entry.project,
                   (entry.issue ? entry.issue.id : nil),
                   (entry.issue ? entry.issue.tracker : nil),

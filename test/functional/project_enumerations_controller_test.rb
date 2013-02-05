@@ -11,7 +11,7 @@ class ProjectEnumerationsControllerTest < ActionController::TestCase
            :workflows,
            :custom_fields, :custom_fields_projects,
            :custom_fields_trackers, :custom_values,
-           :time_entries
+           :time_entries, :departments
 
   self.use_transactional_fixtures = false
 
@@ -134,7 +134,9 @@ class ProjectEnumerationsControllerTest < ActionController::TestCase
     # second one is a dupicate
     parent = TimeEntryActivity.find(9)
     TimeEntryActivity.create!({:name => parent.name, :project_id => 1, :position => parent.position, :active => true})
-    TimeEntry.create!({:project_id => 1, :hours => 1.0, :user => User.find(1), :issue_id => 3, :activity_id => 10, :spent_on => '2009-01-01'})
+    t = TimeEntry.new({:project_id => 1, :hours => 1.0, :user => User.find(1), :issue_id => 3, :activity_id => 10, :spent_on => '2009-01-01' })
+    t.department = departments(:departments_001)
+    t.save!
 
     assert_equal 3, TimeEntry.find_all_by_activity_id_and_project_id(9, 1).size
     assert_equal 1, TimeEntry.find_all_by_activity_id_and_project_id(10, 1).size

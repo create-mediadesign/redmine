@@ -6,6 +6,7 @@
     <th><%= l(:field_description) %></th>
     <th><%= l(:field_status) %></th>
     <th><%= l(:field_sharing) %></th>
+    <th><%= l(:field_projected_hours) %></th>
     <th><%= l(:label_wiki_page) %></th>
     <th style="width:15%"></th>
     </tr></thead>
@@ -17,6 +18,7 @@
     <td class="description"><%=h version.description %></td>
     <td class="status"><%= l("version_status_#{version.status}") %></td>
     <td class="sharing"><%=h format_version_sharing(version.sharing) %></td>
+    <td class="projected_hours"><%= html_hours(l_hours(version.projected_hours)) %></td>
     <td><%= link_to_if_authorized(h(version.wiki_page_title), {:controller => 'wiki', :action => 'show', :project_id => version.project, :id => Wiki.titleize(version.wiki_page_title)}) || h(version.wiki_page_title) unless version.wiki_page_title.blank? || version.project.wiki.nil? %></td>
     <td class="buttons">
       <% if version.project == @project && User.current.allowed_to?(:manage_versions, @project) %>

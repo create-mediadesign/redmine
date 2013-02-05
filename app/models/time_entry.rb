@@ -23,7 +23,8 @@ class TimeEntry < ActiveRecord::Base
   belongs_to :issue
   belongs_to :user
   belongs_to :activity, :class_name => 'TimeEntryActivity', :foreign_key => 'activity_id'
-
+  belongs_to :department
+  
   attr_protected :project_id, :user_id, :tyear, :tmonth, :tweek
 
   acts_as_customizable
@@ -36,12 +37,18 @@ class TimeEntry < ActiveRecord::Base
                             :author_key => :user_id,
                             :find_options => {:include => :project}
 
-  validates_presence_of :user_id, :activity_id, :project_id, :hours, :spent_on
+  validates_presence_of :user_id, :activity_id, :project_id, :hours, :spent_on, :department_id
   validates_numericality_of :hours, :allow_nil => true, :message => :invalid
   validates_length_of :comments, :maximum => 255, :allow_nil => true
   before_validation :set_project_if_nil
   validate :validate_time_entry
-
+  
+  after_create :update_user_last_department
+  
+  scope :updated_on_gte, lambda { |date| { :conditions => ['updated_on >= ?', date] } }
+  scope :for_user, lambda { |user| { :conditions => { :user_id => user.id } } }
+  scope :for_today, { :conditions => { :spent_on => Date.today } }
+  
   scope :visible, lambda {|*args| {
     :include => :project,
     :conditions => Project.allowed_to_condition(args.shift || User.current, :view_time_entries, *args)
@@ -65,8 +72,11 @@ class TimeEntry < ActiveRecord::Base
      {}
     end
   }
+  scope :for_projects, lambda { |projects|
+    where :project_id => projects
+  }
 
-  safe_attributes 'hours', 'comments', 'issue_id', 'activity_id', 'spent_on', 'custom_field_values', 'custom_fields'
+  safe_attributes 'hours', 'comments', 'issue_id', 'activity_id', 'spent_on', 'custom_field_values', 'custom_fields', 'department_id'
 
   def initialize(attributes=nil, *args)
     super
@@ -75,6 +85,10 @@ class TimeEntry < ActiveRecord::Base
         self.activity_id = default_activity.id
       end
       self.hours = nil if hours == 0
+    end
+    
+    if new_record? && User.current && self.department_id.blank?
+      self.department_id = User.current.last_department_id
     end
   end
 
@@ -116,5 +130,12 @@ class TimeEntry < ActiveRecord::Base
   # Returns true if the time entry can be edited by usr, otherwise false
   def editable_by?(usr)
     (usr == user && usr.allowed_to?(:edit_own_time_entries, project)) || usr.allowed_to?(:edit_time_entries, project)
+  end
+  
+  private
+  
+  # Sets the last department attribute of the associated user to the selected department.
+  def update_user_last_department
+    user.update_attribute(:last_department_id, department_id) if user.last_department_id != department_id
   end
 end
