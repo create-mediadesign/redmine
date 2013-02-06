@@ -41,36 +41,12 @@ class TimelogController < ApplicationController
   helper :queries
 
   def index
-# == #NEW:
     @query = TimeEntryQuery.build_from_params(params, :project => @project, :name => '_')
     scope = time_entry_scope
-# == OLD
-=begin
-    sort_init 'spent_on', 'desc'
-    sort_update 'spent_on' => ['spent_on', "#{TimeEntry.table_name}.created_on"],
-                'user' => 'user_id',
-                'activity' => 'activity_id',
-                'department' => 'department_id',
-                'project' => "#{Project.table_name}.name",
-                'issue' => 'issue_id',
-                'hours' => 'hours'
-=end
-
-# == #NEW:
+    
     sort_init(@query.sort_criteria.empty? ? [['spent_on', 'desc']] : @query.sort_criteria)
     sort_update(@query.sortable_columns)
-# == OLD
-=begin
-  retrieve_date_range
-
-  scope = TimeEntry.visible.spent_between(@from, @to)
-    if @issue
-      scope = scope.on_issue(@issue)
-    elsif @project
-      scope = scope.on_project(@project, Setting.display_subprojects_issues?)
-    end
-=end
-
+    
     respond_to do |format|
       format.html {
         # Paginate results

@@ -19,13 +19,13 @@
 <% if @project.safe_attribute? 'inherit_members' %>
 <p><%= f.check_box :inherit_members %></p>
 <% end %>
-<% #NEW %>
+
 <p><%= f.text_field :estimated_hours, :size => 3 %> <%= l(:field_hours) %></p>
 <p><%= f.text_field :billable_hours, :size => 3 %> <%= l(:field_hours) %></p>
 <p><%= f.select :typ, Project::TYPES, :required => true %></p>
 <p><%= f.select :order_status, Project::ORDER_STATUS, { :include_blank => true } %></p>
 <p><%= f.text_field :release_date, :size => 10 %><%= calendar_for('project_release_date') %></p>
-<% #END NEW%>
+
 <%= wikitoolbar_for 'project_description' %>
 
 <% @project.custom_field_values.each do |value| %>
