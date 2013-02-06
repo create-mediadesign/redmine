@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2012  Jean-Philippe Lang
+# Copyright (C) 2006-2013  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
 
 require File.expand_path('../../../test_helper', __FILE__)
 
-class ApiTest::MembershipsTest < ActionController::IntegrationTest
+class Redmine::ApiTest::MembershipsTest < Redmine::ApiTest::Base
   fixtures :projects, :users, :roles, :members, :member_roles
 
   def setup
@@ -157,6 +157,7 @@ class ApiTest::MembershipsTest < ActionController::IntegrationTest
             put '/memberships/2.xml', {:membership => {:user_id => 3, :role_ids => [1,2]}}, credentials('jsmith')
 
             assert_response :ok
+            assert_equal '', @response.body
           end
           member = Member.find(2)
           assert_equal [1,2], member.role_ids.sort
@@ -179,6 +180,7 @@ class ApiTest::MembershipsTest < ActionController::IntegrationTest
             delete '/memberships/2.xml', {}, credentials('jsmith')
 
             assert_response :ok
+            assert_equal '', @response.body
           end
           assert_nil Member.find_by_id(2)
         end

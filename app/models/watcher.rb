@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2012  Jean-Philippe Lang
+# Copyright (C) 2006-2013  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@ class Watcher < ActiveRecord::Base
       prune_single_user(options[:user], options)
     else
       pruned = 0
-      User.find(:all, :conditions => "id IN (SELECT DISTINCT user_id FROM #{table_name})").each do |user|
+      User.where("id IN (SELECT DISTINCT user_id FROM #{table_name})").all.each do |user|
         pruned += prune_single_user(user, options)
       end
       pruned
@@ -47,7 +47,7 @@ class Watcher < ActiveRecord::Base
   def self.prune_single_user(user, options={})
     return unless user.is_a?(User)
     pruned = 0
-    find(:all, :conditions => {:user_id => user.id}).each do |watcher|
+    where(:user_id => user.id).all.each do |watcher|
       next if watcher.watchable.nil?
 
       if options.has_key?(:project)

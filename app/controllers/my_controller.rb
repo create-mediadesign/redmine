@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2012  Jean-Philippe Lang
+# Copyright (C) 2006-2013  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -59,7 +59,7 @@ class MyController < ApplicationController
         @user.notified_project_ids = (@user.mail_notification == 'selected' ? params[:notified_project_ids] : [])
         set_language_if_valid @user.language
         flash[:notice] = l(:notice_account_updated)
-        redirect_to :action => 'account'
+        redirect_to my_account_path
         return
       end
     end
@@ -69,7 +69,7 @@ class MyController < ApplicationController
   def destroy
     @user = User.current
     unless @user.own_account_deletable?
-      redirect_to :action => 'account'
+      redirect_to my_account_path
       return
     end
 
@@ -88,7 +88,7 @@ class MyController < ApplicationController
     @user = User.current
     unless @user.change_password_allowed?
       flash[:error] = l(:notice_can_t_change_password)
-      redirect_to :action => 'account'
+      redirect_to my_account_path
       return
     end
     if request.post?
@@ -96,7 +96,7 @@ class MyController < ApplicationController
         @user.password, @user.password_confirmation = params[:new_password], params[:new_password_confirmation]
         if @user.save
           flash[:notice] = l(:notice_account_password_updated)
-          redirect_to :action => 'account'
+          redirect_to my_account_path
         end
       else
         flash[:error] = l(:notice_account_wrong_password)
@@ -114,7 +114,7 @@ class MyController < ApplicationController
       User.current.rss_key
       flash[:notice] = l(:notice_feeds_access_key_reseted)
     end
-    redirect_to :action => 'account'
+    redirect_to my_account_path
   end
 
   # Create a new API key
@@ -127,7 +127,7 @@ class MyController < ApplicationController
       User.current.api_key
       flash[:notice] = l(:notice_api_access_key_reseted)
     end
-    redirect_to :action => 'account'
+    redirect_to my_account_path
   end
 
   # User's page layout configuration
@@ -135,7 +135,11 @@ class MyController < ApplicationController
     @user = User.current
     @blocks = @user.pref[:my_page_layout] || DEFAULT_LAYOUT.dup
     @block_options = []
-    BLOCKS.each {|k, v| @block_options << [l("my.blocks.#{v}", :default => [v, v.to_s.humanize]), k.dasherize]}
+    BLOCKS.each do |k, v|
+      unless %w(top left right).detect {|f| (@blocks[f] ||= []).include?(k)}
+        @block_options << [l("my.blocks.#{v}", :default => [v, v.to_s.humanize]), k.dasherize]
+      end
+    end
   end
 
   # Add a block to user's page
@@ -143,16 +147,17 @@ class MyController < ApplicationController
   # params[:block] : id of the block to add
   def add_block
     block = params[:block].to_s.underscore
-    (render :nothing => true; return) unless block && (BLOCKS.keys.include? block)
-    @user = User.current
-    layout = @user.pref[:my_page_layout] || {}
-    # remove if already present in a group
-    %w(top left right).each {|f| (layout[f] ||= []).delete block }
-    # add it on top
-    layout['top'].unshift block
-    @user.pref[:my_page_layout] = layout
-    @user.pref.save
-    render :partial => "block", :locals => {:user => @user, :block_name => block}
+    if block.present? && BLOCKS.key?(block)
+      @user = User.current
+      layout = @user.pref[:my_page_layout] || {}
+      # remove if already present in a group
+      %w(top left right).each {|f| (layout[f] ||= []).delete block }
+      # add it on top
+      layout['top'].unshift block
+      @user.pref[:my_page_layout] = layout
+      @user.pref.save
+    end
+    redirect_to my_page_layout_path
   end
 
   # Remove a block to user's page
@@ -165,7 +170,7 @@ class MyController < ApplicationController
     %w(top left right).each {|f| (layout[f] ||= []).delete block }
     @user.pref[:my_page_layout] = layout
     @user.pref.save
-    render :nothing => true
+    redirect_to my_page_layout_path
   end
 
   # Change blocks order on user's page
@@ -175,7 +180,8 @@ class MyController < ApplicationController
     group = params[:group]
     @user = User.current
     if group.is_a?(String)
-      group_items = (params["list-#{group}"] || []).collect(&:underscore)
+      group_items = (params["blocks"] || []).collect(&:underscore)
+      group_items.each {|s| s.sub!(/^block_/, '')}
       if group_items and group_items.is_a? Array
         layout = @user.pref[:my_page_layout] || {}
         # remove group blocks if they are presents in other groups

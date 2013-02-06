@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2012  Jean-Philippe Lang
+# Copyright (C) 2006-2013  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -55,7 +55,7 @@ class MailerTest < ActiveSupport::TestCase
       # link to a referenced ticket
       assert_select 'a[href=?][title=?]',
                     'https://mydomain.foo/issues/1',
-                    'Can\'t print recipes (New)',
+                    'Can&#x27;t print recipes (New)',
                     :text => '#1'
       # link to a changeset
       assert_select 'a[href=?][title=?]',
@@ -94,7 +94,7 @@ class MailerTest < ActiveSupport::TestCase
       # link to a referenced ticket
       assert_select 'a[href=?][title=?]',
                     'http://mydomain.foo/rdm/issues/1',
-                    'Can\'t print recipes (New)',
+                    'Can&#x27;t print recipes (New)',
                     :text => '#1'
       # link to a changeset
       assert_select 'a[href=?][title=?]',
@@ -134,7 +134,7 @@ class MailerTest < ActiveSupport::TestCase
       # link to a referenced ticket
       assert_select 'a[href=?][title=?]',
                     'http://mydomain.foo/rdm/issues/1',
-                    'Can\'t print recipes (New)',
+                    'Can&#x27;t print recipes (New)',
                     :text => '#1'
       # link to a changeset
       assert_select 'a[href=?][title=?]',
@@ -210,7 +210,7 @@ class MailerTest < ActiveSupport::TestCase
   end
 
   def test_should_not_send_email_without_recipient
-    news = News.find(:first)
+    news = News.first
     user = news.author
     # Remove members except news author
     news.project.memberships.each {|m| m.destroy unless m.user == user}
@@ -279,44 +279,40 @@ class MailerTest < ActiveSupport::TestCase
     end
   end
 
-  context("#issue_add") do
-    setup do
-      ActionMailer::Base.deliveries.clear
-      Setting.bcc_recipients = '1'
-      @issue = Issue.find(1)
-    end
+  test "#issue_add should notify project members" do
+    issue = Issue.find(1)
+    assert Mailer.issue_add(issue).deliver
+    assert last_email.bcc.include?('dlopper@somenet.foo')
+  end
 
-    should "notify project members" do
-      assert Mailer.issue_add(@issue).deliver
-      assert last_email.bcc.include?('dlopper@somenet.foo')
-    end
+  test "#issue_add should not notify project members that are not allow to view the issue" do
+    issue = Issue.find(1)
+    Role.find(2).remove_permission!(:view_issues)
+    assert Mailer.issue_add(issue).deliver
+    assert !last_email.bcc.include?('dlopper@somenet.foo')
+  end
 
-    should "not notify project members that are not allow to view the issue" do
-      Role.find(2).remove_permission!(:view_issues)
-      assert Mailer.issue_add(@issue).deliver
-      assert !last_email.bcc.include?('dlopper@somenet.foo')
-    end
+  test "#issue_add should notify issue watchers" do
+    issue = Issue.find(1)
+    user = User.find(9)
+    # minimal email notification options
+    user.pref[:no_self_notified] = '1'
+    user.pref.save
+    user.mail_notification = false
+    user.save
 
-    should "notify issue watchers" do
-      user = User.find(9)
-      # minimal email notification options
-      user.pref[:no_self_notified] = '1'
-      user.pref.save
-      user.mail_notification = false
-      user.save
+    Watcher.create!(:watchable => issue, :user => user)
+    assert Mailer.issue_add(issue).deliver
+    assert last_email.bcc.include?(user.mail)
+  end
 
-      Watcher.create!(:watchable => @issue, :user => user)
-      assert Mailer.issue_add(@issue).deliver
-      assert last_email.bcc.include?(user.mail)
-    end
-
-    should "not notify watchers not allowed to view the issue" do
-      user = User.find(9)
-      Watcher.create!(:watchable => @issue, :user => user)
-      Role.non_member.remove_permission!(:view_issues)
-      assert Mailer.issue_add(@issue).deliver
-      assert !last_email.bcc.include?(user.mail)
-    end
+  test "#issue_add should not notify watchers not allowed to view the issue" do
+    issue = Issue.find(1)
+    user = User.find(9)
+    Watcher.create!(:watchable => issue, :user => user)
+    Role.non_member.remove_permission!(:view_issues)
+    assert Mailer.issue_add(issue).deliver
+    assert !last_email.bcc.include?(user.mail)
   end
 
   # test mailer methods for each language
@@ -334,6 +330,35 @@ class MailerTest < ActiveSupport::TestCase
       Setting.default_language = lang.to_s
       assert Mailer.issue_edit(journal).deliver
     end
+  end
+
+  def test_issue_edit_should_send_private_notes_to_users_with_permission_only
+    journal = Journal.find(1)
+    journal.private_notes = true
+    journal.save!
+
+    Role.find(2).add_permission! :view_private_notes
+    Mailer.issue_edit(journal).deliver
+    assert_equal %w(dlopper@somenet.foo jsmith@somenet.foo), ActionMailer::Base.deliveries.last.bcc.sort
+
+    Role.find(2).remove_permission! :view_private_notes
+    Mailer.issue_edit(journal).deliver
+    assert_equal %w(jsmith@somenet.foo), ActionMailer::Base.deliveries.last.bcc.sort
+  end
+
+  def test_issue_edit_should_send_private_notes_to_watchers_with_permission_only
+    Issue.find(1).set_watcher(User.find_by_login('someone'))
+    journal = Journal.find(1)
+    journal.private_notes = true
+    journal.save!
+
+    Role.non_member.add_permission! :view_private_notes
+    Mailer.issue_edit(journal).deliver
+    assert_include 'someone@foo.bar', ActionMailer::Base.deliveries.last.bcc.sort
+
+    Role.non_member.remove_permission! :view_private_notes
+    Mailer.issue_edit(journal).deliver
+    assert_not_include 'someone@foo.bar', ActionMailer::Base.deliveries.last.bcc.sort
   end
 
   def test_document_added
@@ -373,7 +398,7 @@ class MailerTest < ActiveSupport::TestCase
   end
 
   def test_news_added
-    news = News.find(:first)
+    news = News.first
     valid_languages.each do |lang|
       Setting.default_language = lang.to_s
       assert Mailer.news_added(news).deliver
@@ -389,7 +414,7 @@ class MailerTest < ActiveSupport::TestCase
   end
 
   def test_message_posted
-    message = Message.find(:first)
+    message = Message.first
     recipients = ([message.root] + message.root.children).collect {|m| m.author.mail if m.author}
     recipients = recipients.compact.uniq
     valid_languages.each do |lang|
@@ -404,6 +429,11 @@ class MailerTest < ActiveSupport::TestCase
       Setting.default_language = lang.to_s
       assert_difference 'ActionMailer::Base.deliveries.size' do
         assert Mailer.wiki_content_added(content).deliver
+        assert_select_email do
+          assert_select 'a[href=?]',
+            'http://mydomain.foo/projects/ecookbook/wiki/CookBook_documentation',
+            :text => 'CookBook documentation'
+        end
       end
     end
   end
@@ -414,6 +444,11 @@ class MailerTest < ActiveSupport::TestCase
       Setting.default_language = lang.to_s
       assert_difference 'ActionMailer::Base.deliveries.size' do
         assert Mailer.wiki_content_updated(content).deliver
+        assert_select_email do
+          assert_select 'a[href=?]',
+            'http://mydomain.foo/projects/ecookbook/wiki/CookBook_documentation',
+            :text => 'CookBook documentation'
+        end
       end
     end
   end
@@ -498,6 +533,27 @@ class MailerTest < ActiveSupport::TestCase
     assert_mail_body_match 'Bug #3: Error 281 when updating a recipe', mail
   end
 
+  def test_reminder_should_include_issues_assigned_to_groups
+    with_settings :default_language => 'en' do
+      group = Group.generate!
+      group.users << User.find(2)
+      group.users << User.find(3)
+
+      Issue.create!(:project_id => 1, :tracker_id => 1, :status_id => 1,
+                      :subject => 'Assigned to group', :assigned_to => group,
+                      :due_date => 5.days.from_now,
+                      :author_id => 2)
+      ActionMailer::Base.deliveries.clear
+
+      Mailer.reminders(:days => 7)
+      assert_equal 2, ActionMailer::Base.deliveries.size
+      assert_equal %w(dlopper@somenet.foo jsmith@somenet.foo), ActionMailer::Base.deliveries.map(&:bcc).flatten.sort
+      ActionMailer::Base.deliveries.each do |mail|
+        assert_mail_body_match 'Assigned to group', mail
+      end
+    end
+  end
+
   def test_mailer_should_not_change_locale
     Setting.default_language = 'en'
     # Set current language to italian
@@ -532,10 +588,27 @@ class MailerTest < ActiveSupport::TestCase
     end
   end
 
-private
+  def test_should_escape_html_templates_only
+    Issue.generate!(:project_id => 1, :tracker_id => 1, :subject => 'Subject with a <tag>')
+    mail = last_email
+    assert_equal 2, mail.parts.size
+    assert_include '<tag>', text_part.body.encoded
+    assert_include '&lt;tag&gt;', html_part.body.encoded
+  end
+
+  private
+
   def last_email
     mail = ActionMailer::Base.deliveries.last
     assert_not_nil mail
     mail
+  end
+
+  def text_part
+    last_email.parts.detect {|part| part.content_type.include?('text/plain')}
+  end
+
+  def html_part
+    last_email.parts.detect {|part| part.content_type.include?('text/html')}
   end
 end

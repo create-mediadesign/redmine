@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2012  Jean-Philippe Lang
+# Copyright (C) 2006-2013  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
 
 require File.expand_path('../../../test_helper', __FILE__)
 
-class ApiTest::RolesTest < ActionController::IntegrationTest
+class Redmine::ApiTest::RolesTest < Redmine::ApiTest::Base
   fixtures :roles
 
   def setup
@@ -62,6 +62,27 @@ class ApiTest::RolesTest < ActionController::IntegrationTest
           assert_kind_of Hash, json
           assert_kind_of Array, json['roles']
           assert_include({'id' => 2, 'name' => 'Developer'}, json['roles'])
+        end
+      end
+    end
+  end
+
+  context "/roles/:id" do
+    context "GET" do
+      context "xml" do
+        should "return the role" do
+          get '/roles/1.xml'
+
+          assert_response :success
+          assert_equal 'application/xml', @response.content_type
+
+          assert_select 'role' do
+            assert_select 'name', :text => 'Manager'
+            assert_select 'role permissions[type=array]' do
+              assert_select 'permission', Role.find(1).permissions.size
+              assert_select 'permission', :text => 'view_issues'
+            end
+          end
         end
       end
     end

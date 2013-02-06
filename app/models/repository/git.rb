@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2012  Jean-Philippe Lang
+# Copyright (C) 2006-2013  Jean-Philippe Lang
 # Copyright (C) 2007  Patrick Aljord patcito@ŋmail.com
 #
 # This program is free software; you can redistribute it and/or
@@ -87,16 +87,16 @@ class Repository::Git < Repository
   end
 
   def find_changeset_by_name(name)
-    return nil if name.nil? || name.empty?
-    e = changesets.find(:first, :conditions => ['revision = ?', name.to_s])
-    return e if e
-    changesets.find(:first, :conditions => ['scmid LIKE ?', "#{name}%"])
+    if name.present?
+      changesets.where(:revision => name.to_s).first ||
+        changesets.where('scmid LIKE ?', "#{name}%").first
+    end
   end
 
   def entries(path=nil, identifier=nil)
-    scm.entries(path,
-                identifier,
-                options = {:report_last_commit => extra_report_last_commit})
+    entries = scm.entries(path, identifier, :report_last_commit => extra_report_last_commit)
+    load_entries_changesets(entries)
+    entries
   end
 
   # With SCMs that have a sequential commit numbering,
@@ -251,8 +251,18 @@ class Repository::Git < Repository
       :conditions => [
         "scmid IN (?)",
         revisions.map!{|c| c.scmid}
-      ],
-      :order => 'committed_on DESC'
+      ]
     )
   end
+
+  def clear_extra_info_of_changesets
+    return if extra_info.nil?
+    v = extra_info["extra_report_last_commit"]
+    write_attribute(:extra_info, nil)
+    h = {}
+    h["extra_report_last_commit"] = v
+    merge_extra_info(h)
+    self.save
+  end
+  private :clear_extra_info_of_changesets
 end

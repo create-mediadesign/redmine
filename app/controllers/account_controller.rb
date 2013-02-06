@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2012  Jean-Philippe Lang
+# Copyright (C) 2006-2013  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -25,7 +25,9 @@ class AccountController < ApplicationController
   # Login request and validation
   def login
     if request.get?
-      logout_user
+      if User.current.logged?
+        redirect_to home_url
+      end
     else
       authenticate_user
     end
@@ -36,23 +38,35 @@ class AccountController < ApplicationController
 
   # Log out current user and redirect to welcome page
   def logout
-    logout_user
-    redirect_to home_url
+    if User.current.anonymous?
+      redirect_to home_url
+    elsif request.post?
+      logout_user
+      redirect_to home_url
+    end
+    # display the logout form
   end
 
-  # Enable user to choose a new password
+  # Lets user choose a new password
   def lost_password
-    redirect_to(home_url) && return unless Setting.lost_password?
+    (redirect_to(home_url); return) unless Setting.lost_password?
     if params[:token]
-      @token = Token.find_by_action_and_value("recovery", params[:token])
-      redirect_to(home_url) && return unless @token and !@token.expired?
+      @token = Token.find_by_action_and_value("recovery", params[:token].to_s)
+      if @token.nil? || @token.expired?
+        redirect_to home_url
+        return
+      end
       @user = @token.user
+      unless @user && @user.active?
+        redirect_to home_url
+        return
+      end
       if request.post?
         @user.password, @user.password_confirmation = params[:new_password], params[:new_password_confirmation]
         if @user.save
           @token.destroy
           flash[:notice] = l(:notice_account_password_updated)
-          redirect_to :action => 'login'
+          redirect_to signin_path
           return
         end
       end
@@ -60,17 +74,23 @@ class AccountController < ApplicationController
       return
     else
       if request.post?
-        user = User.find_by_mail(params[:mail])
-        # user not found in db
-        (flash.now[:error] = l(:notice_account_unknown_email); return) unless user
-        # user uses an external authentification
-        (flash.now[:error] = l(:notice_can_t_change_password); return) if user.auth_source_id
+        user = User.find_by_mail(params[:mail].to_s)
+        # user not found or not active
+        unless user && user.active?
+          flash.now[:error] = l(:notice_account_unknown_email)
+          return
+        end
+        # user cannot change its password
+        unless user.change_password_allowed?
+          flash.now[:error] = l(:notice_can_t_change_password)
+          return
+        end
         # create a new token for password recovery
         token = Token.new(:user => user, :action => "recovery")
         if token.save
           Mailer.lost_password(token).deliver
           flash[:notice] = l(:notice_account_lost_email_sent)
-          redirect_to :action => 'login'
+          redirect_to signin_path
           return
         end
       end
@@ -79,13 +99,14 @@ class AccountController < ApplicationController
 
   # User self-registration
   def register
-    redirect_to(home_url) && return unless Setting.self_registration? || session[:auth_source_registration]
+    (redirect_to(home_url); return) unless Setting.self_registration? || session[:auth_source_registration]
     if request.get?
       session[:auth_source_registration] = nil
-      @user = User.new(:language => Setting.default_language)
+      @user = User.new(:language => current_language.to_s)
     else
+      user_params = params[:user] || {}
       @user = User.new
-      @user.safe_attributes = params[:user]
+      @user.safe_attributes = user_params
       @user.admin = false
       @user.register
       if session[:auth_source_registration]
@@ -96,11 +117,13 @@ class AccountController < ApplicationController
           session[:auth_source_registration] = nil
           self.logged_user = @user
           flash[:notice] = l(:notice_account_activated)
-          redirect_to :controller => 'my', :action => 'account'
+          redirect_to my_account_path
         end
       else
         @user.login = params[:user][:login]
-        @user.password, @user.password_confirmation = params[:user][:password], params[:user][:password_confirmation]
+        unless user_params[:identity_url].present? && user_params[:password].blank? && user_params[:password_confirmation].blank?
+          @user.password, @user.password_confirmation = user_params[:password], user_params[:password_confirmation]
+        end
 
         case Setting.self_registration
         when '1'
@@ -116,17 +139,17 @@ class AccountController < ApplicationController
 
   # Token based account activation
   def activate
-    redirect_to(home_url) && return unless Setting.self_registration? && params[:token]
-    token = Token.find_by_action_and_value('register', params[:token])
-    redirect_to(home_url) && return unless token and !token.expired?
+    (redirect_to(home_url); return) unless Setting.self_registration? && params[:token].present?
+    token = Token.find_by_action_and_value('register', params[:token].to_s)
+    (redirect_to(home_url); return) unless token and !token.expired?
     user = token.user
-    redirect_to(home_url) && return unless user.registered?
+    (redirect_to(home_url); return) unless user.registered?
     user.activate
     if user.save
       token.destroy
       flash[:notice] = l(:notice_account_activated)
     end
-    redirect_to :action => 'login'
+    redirect_to signin_path
   end
 
   private
@@ -158,7 +181,7 @@ class AccountController < ApplicationController
         user = User.find_or_initialize_by_identity_url(identity_url)
         if user.new_record?
           # Self-registration off
-          redirect_to(home_url) && return unless Setting.self_registration?
+          (redirect_to(home_url); return) unless Setting.self_registration?
 
           # Create on the fly
           user.login = registration['nickname'] unless registration['nickname'].nil?
@@ -194,6 +217,7 @@ class AccountController < ApplicationController
   end
 
   def successful_authentication(user)
+    logger.info "Successful authentication for '#{user.login}' from #{request.remote_ip} at #{Time.now.utc}"
     # Valid user
     self.logged_user = user
     # generate a key and set cookie if autologin
@@ -201,7 +225,7 @@ class AccountController < ApplicationController
       set_autologin_cookie(user)
     end
     call_hook(:controller_account_success_authentication_after, {:user => user })
-    redirect_back_or_default :controller => 'my', :action => 'page'
+    redirect_back_or_default my_page_path
   end
 
   def set_autologin_cookie(user)
@@ -237,7 +261,7 @@ class AccountController < ApplicationController
     if user.save and token.save
       Mailer.register(token).deliver
       flash[:notice] = l(:notice_account_register_done)
-      redirect_to :action => 'login'
+      redirect_to signin_path
     else
       yield if block_given?
     end
@@ -253,7 +277,7 @@ class AccountController < ApplicationController
     if user.save
       self.logged_user = user
       flash[:notice] = l(:notice_account_activated)
-      redirect_to :controller => 'my', :action => 'account'
+      redirect_to my_account_path
     else
       yield if block_given?
     end
@@ -274,6 +298,6 @@ class AccountController < ApplicationController
 
   def account_pending
     flash[:notice] = l(:notice_account_pending)
-    redirect_to :action => 'login'
+    redirect_to signin_path
   end
 end
