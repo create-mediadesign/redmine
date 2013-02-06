@@ -32,6 +32,7 @@ module ObjectHelpers
     @generated_project_identifier ||= 'project-0000'
     @generated_project_identifier.succ!
     project = Project.new(attributes)
+    project.typ = Project::TYPES.first if project.typ.blank?
     project.name = @generated_project_identifier.dup if project.name.blank?
     project.identifier = @generated_project_identifier.dup if project.identifier.blank?
     yield project if block_given?
@@ -111,6 +112,7 @@ module ObjectHelpers
     entry.project ||= entry.issue.project
     entry.activity ||= TimeEntryActivity.first
     entry.spent_on ||= Date.today
+    entry.department ||= Department.first
     entry.save!
     entry
   end

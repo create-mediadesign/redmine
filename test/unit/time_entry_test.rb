@@ -25,7 +25,8 @@ class TimeEntryTest < ActiveSupport::TestCase
            :journals, :journal_details,
            :issue_categories, :enumerations,
            :groups_users,
-           :enabled_modules
+           :enabled_modules,
+           :departments
 
   def test_hours_format
     assertions = { "2"      => 2.0,
@@ -97,7 +98,7 @@ class TimeEntryTest < ActiveSupport::TestCase
     @user = users(:users_001)
     @department = departments(:departments_003)
     @public_project = Project.generate!(:is_public => true)
-    @issue = Issue.generate_for_project!(@public_project)
+    @issue = Issue.generate!(:project => @public_project)
     @time_entry = TimeEntry.create!(:spent_on => '2010-01-01',
                                     :hours    => 2,
                                     :issue => @issue,
@@ -136,7 +137,7 @@ class TimeEntryTest < ActiveSupport::TestCase
       user = users(:users_001)
       department = departments(:departments_003)
       public_project = Project.generate!(:is_public => true)
-      issue = Issue.generate_for_project!(public_project)
+      issue = Issue.generate!(:project => public_project)
       time_entry = TimeEntry.create!(:spent_on => Date.today,
                                      :hours    => 2,
                                      :issue => issue,

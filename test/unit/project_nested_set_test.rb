@@ -107,17 +107,17 @@ class ProjectNestedSetTest < ActiveSupport::TestCase
   end
 
   def test_adding_a_root_to_first_position_should_update_nested_set_order
-    project = Project.create!(:name => '1', :identifier => 'projectba')
+    project = Project.create!(:name => '1', :identifier => 'projectba', :typ => Project::TYPES.first)
     assert_valid_nested_set
   end
 
   def test_adding_a_root_to_middle_position_should_update_nested_set_order
-    project = Project.create!(:name => 'BA', :identifier => 'projectba')
+    project = Project.create!(:name => 'BA', :identifier => 'projectba', :typ => Project::TYPES.first)
     assert_valid_nested_set
   end
 
   def test_adding_a_root_to_last_position_should_update_nested_set_order
-    project = Project.create!(:name => 'Z', :identifier => 'projectba')
+    project = Project.create!(:name => 'Z', :identifier => 'projectba', :typ => Project::TYPES.first)
     assert_valid_nested_set
   end
 

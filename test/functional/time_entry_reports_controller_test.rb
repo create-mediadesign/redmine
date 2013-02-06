@@ -23,7 +23,7 @@ class TimeEntryReportsControllerTest < ActionController::TestCase
 
   fixtures :projects, :enabled_modules, :roles, :members, :member_roles,
            :issues, :time_entries, :users, :trackers, :enumerations,
-           :issue_statuses, :custom_fields, :custom_values
+           :issue_statuses, :custom_fields, :custom_values, :departments
 
   include Redmine::I18n
 
@@ -99,7 +99,7 @@ class TimeEntryReportsControllerTest < ActionController::TestCase
 
   def test_report_custom_field_criteria_with_multiple_values
     field = TimeEntryCustomField.create!(:name => 'multi', :field_format => 'list', :possible_values => ['value1', 'value2'])
-    entry = TimeEntry.create!(:project => Project.find(1), :hours => 1, :activity_id => 10, :user => User.find(2), :spent_on => Date.today)
+    entry = TimeEntry.create!(:project => Project.find(1), :hours => 1, :activity_id => 10, :user => User.find(2), :spent_on => Date.today, :department => departments(:departments_003))
     CustomValue.create!(:customized => entry, :custom_field => field, :value => 'value1')
     CustomValue.create!(:customized => entry, :custom_field => field, :value => 'value2')
 

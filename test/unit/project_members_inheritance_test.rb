@@ -28,7 +28,7 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
 
   def test_project_created_with_inherit_members_disabled_should_not_inherit_members
     assert_no_difference 'Member.count' do
-      project = Project.generate_with_parent!(@parent, :inherit_members => false)
+      project = Project.generate_with_parent!(@parent, :inherit_members => false, :typ => Project::TYPES.first)
 
       assert_equal 0, project.memberships.count
     end
@@ -36,7 +36,7 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
 
   def test_project_created_with_inherit_members_should_inherit_members
     assert_difference 'Member.count', 1 do
-      project = Project.generate_with_parent!(@parent, :inherit_members => true)
+      project = Project.generate_with_parent!(@parent, :inherit_members => true, :typ => Project::TYPES.first)
       project.reload
 
       assert_equal 1, project.memberships.count
@@ -47,7 +47,7 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
   end
 
   def test_turning_on_inherit_members_should_inherit_members
-    Project.generate_with_parent!(@parent, :inherit_members => false)
+    Project.generate_with_parent!(@parent, :inherit_members => false, :typ => Project::TYPES.first)
 
     assert_difference 'Member.count', 1 do
       project = Project.order('id desc').first
@@ -63,7 +63,7 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
   end
 
   def test_turning_off_inherit_members_should_remove_inherited_members
-    Project.generate_with_parent!(@parent, :inherit_members => true)
+    Project.generate_with_parent!(@parent, :inherit_members => true, :typ => Project::TYPES.first)
 
     assert_difference 'Member.count', -1 do
       project = Project.order('id desc').first
@@ -91,7 +91,7 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
   end
 
   def test_moving_a_subproject_as_root_should_loose_inherited_members
-    Project.generate_with_parent!(@parent, :inherit_members => true)
+    Project.generate_with_parent!(@parent, :inherit_members => true, :typ => Project::TYPES.first)
     project = Project.order('id desc').first
 
     assert_difference 'Member.count', -1 do
@@ -106,7 +106,7 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
     other_parent = Project.generate!
     other_member = Member.create!(:principal => User.find(4), :project => other_parent, :role_ids => [3])
 
-    Project.generate_with_parent!(@parent, :inherit_members => true)
+    Project.generate_with_parent!(@parent, :inherit_members => true, :typ => Project::TYPES.first)
     project = Project.order('id desc').first
     project.set_parent!(other_parent.reload)
     project.reload
@@ -118,8 +118,8 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
   end
 
   def test_inheritance_should_propagate_to_subprojects
-    project = Project.generate_with_parent!(@parent, :inherit_members => false)
-    subproject = Project.generate_with_parent!(project, :inherit_members => true)
+    project = Project.generate_with_parent!(@parent, :inherit_members => false, :typ => Project::TYPES.first)
+    subproject = Project.generate_with_parent!(project, :inherit_members => true, :typ => Project::TYPES.first)
     project.reload
 
     assert_difference 'Member.count', 2 do
@@ -137,8 +137,8 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
   end
 
   def test_inheritance_removal_should_propagate_to_subprojects
-    project = Project.generate_with_parent!(@parent, :inherit_members => true)
-    subproject = Project.generate_with_parent!(project, :inherit_members => true)
+    project = Project.generate_with_parent!(@parent, :inherit_members => true, :typ => Project::TYPES.first)
+    subproject = Project.generate_with_parent!(project, :inherit_members => true, :typ => Project::TYPES.first)
     project.reload
 
     assert_difference 'Member.count', -2 do
@@ -153,7 +153,7 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
   end
 
   def test_adding_a_member_should_propagate
-    project = Project.generate_with_parent!(@parent, :inherit_members => true)
+    project = Project.generate_with_parent!(@parent, :inherit_members => true, :typ => Project::TYPES.first)
 
     assert_difference 'Member.count', 2 do
       member = Member.create!(:principal => User.find(4), :project => @parent, :role_ids => [1, 3])
@@ -165,7 +165,7 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
   end
 
   def test_adding_a_member_should_not_propagate_if_child_does_not_inherit
-    project = Project.generate_with_parent!(@parent, :inherit_members => false)
+    project = Project.generate_with_parent!(@parent, :inherit_members => false, :typ => Project::TYPES.first)
 
     assert_difference 'Member.count', 1 do
       member = Member.create!(:principal => User.find(4), :project => @parent, :role_ids => [1, 3])
@@ -175,7 +175,7 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
   end
 
   def test_removing_a_member_should_propagate
-    project = Project.generate_with_parent!(@parent, :inherit_members => true)
+    project = Project.generate_with_parent!(@parent, :inherit_members => true, :typ => Project::TYPES.first)
 
     assert_difference 'Member.count', -2 do
       @member.reload.destroy
@@ -186,7 +186,7 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
   end
 
   def test_adding_a_group_member_should_propagate_with_its_users
-    project = Project.generate_with_parent!(@parent, :inherit_members => true)
+    project = Project.generate_with_parent!(@parent, :inherit_members => true, :typ => Project::TYPES.first)
     group = Group.generate!
     user = User.find(4)
     group.users << user
@@ -208,7 +208,7 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
   end
 
   def test_removing_a_group_member_should_propagate
-    project = Project.generate_with_parent!(@parent, :inherit_members => true)
+    project = Project.generate_with_parent!(@parent, :inherit_members => true, :typ => Project::TYPES.first)
     group = Group.generate!
     user = User.find(4)
     group.users << user
@@ -229,7 +229,7 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
   end
 
   def test_adding_user_who_use_is_already_a_member_to_parent_project_should_merge_roles
-    project = Project.generate_with_parent!(@parent, :inherit_members => true)
+    project = Project.generate_with_parent!(@parent, :inherit_members => true, :typ => Project::TYPES.first)
     user = User.find(4)
     Member.create!(:principal => user, :project => project, :role_ids => [1, 2])
 
@@ -243,7 +243,7 @@ class ProjectMembersInheritanceTest < ActiveSupport::TestCase
   end
 
   def test_turning_on_inheritance_with_user_who_is_already_a_member_should_merge_roles
-    project = Project.generate_with_parent!(@parent)
+    project = Project.generate_with_parent!(@parent, :typ => Project::TYPES.first)
     user = @member.user
     Member.create!(:principal => user, :project => project, :role_ids => [1, 3])
     project.reload

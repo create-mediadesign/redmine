@@ -485,7 +485,7 @@ class ProjectTest < ActiveSupport::TestCase
     project = Project.generate!
     parent_version_1 = Version.generate!(:project => project)
     parent_version_2 = Version.generate!(:project => project)
-    subproject = Project.generate_with_parent!(project)
+    subproject = Project.generate_with_parent!(project, :typ => Project::TYPES.first)
     subproject_version = Version.generate!(:project => subproject)
 
     assert_same_elements [
@@ -499,8 +499,8 @@ class ProjectTest < ActiveSupport::TestCase
     project = Project.generate!
     parent_version_1 = Version.generate!(:project => project)
     parent_version_2 = Version.generate!(:project => project)
-    subproject = Project.generate_with_parent!(project)
-    sub_subproject = Project.generate_with_parent!(subproject)
+    subproject = Project.generate_with_parent!(project, :typ => Project::TYPES.first)
+    sub_subproject = Project.generate_with_parent!(subproject, :typ => Project::TYPES.first)
     sub_subproject_version = Version.generate!(:project => sub_subproject)
     project.reload
 
@@ -515,7 +515,7 @@ class ProjectTest < ActiveSupport::TestCase
     project = Project.generate!
     parent_version_1 = Version.generate!(:project => project)
     parent_version_2 = Version.generate!(:project => project)
-    subproject = Project.generate_with_parent!(project)
+    subproject = Project.generate_with_parent!(project, :typ => Project::TYPES.first)
     subproject_version = Version.generate!(:project => subproject)
     assert subproject.archive
     project.reload

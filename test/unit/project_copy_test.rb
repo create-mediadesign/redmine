@@ -41,7 +41,7 @@ class ProjectCopyTest < ActiveSupport::TestCase
   def setup
     ProjectCustomField.destroy_all
     @source_project = Project.find(2)
-    @project = Project.new(:name => 'Copy Test', :identifier => 'copy-test')
+    @project = Project.new(:name => 'Copy Test', :identifier => 'copy-test', :typ => Project::TYPES.first)
     @project.trackers = @source_project.trackers
     @project.enabled_module_names = @source_project.enabled_modules.collect(&:name)
   end
@@ -299,7 +299,7 @@ class ProjectCopyTest < ActiveSupport::TestCase
   test "#copy should copy subtasks" do
     source = Project.generate!(:tracker_ids => [1])
     issue = Issue.generate_with_descendants!(:project => source)
-    project = Project.new(:name => 'Copy', :identifier => 'copy', :tracker_ids => [1])
+    project = Project.new(:name => 'Copy', :identifier => 'copy', :tracker_ids => [1], :typ => Project::TYPES.first)
 
     assert_difference 'Project.count' do
       assert_difference 'Issue.count', 1+issue.descendants.count do

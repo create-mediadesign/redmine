@@ -5,7 +5,7 @@ class Evaluation::ProjectsController < Evaluation::BaseController
   def index
     projects = params[:from].blank? ? ::Project.skip_dummy :
                                       ::Project.skip_dummy.updated_on_gte(params[:from])
-    
+                                      
     respond_to do |format|
       format.json { render :json => projects.map { |project| ::Evaluation::Json::Project.new(project) } }
     end

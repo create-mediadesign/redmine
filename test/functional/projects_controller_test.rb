@@ -302,7 +302,7 @@ class ProjectsControllerTest < ActionController::TestCase
 
     assert_difference 'Project.count' do
       post :create, :project => {
-        :name => 'inherited', :identifier => 'inherited', :parent_id => parent.id, :inherit_members => '1'
+        :name => 'inherited', :identifier => 'inherited', :parent_id => parent.id, :inherit_members => '1', :typ => Project::TYPES.first
       }
       assert_response 302
     end

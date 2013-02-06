@@ -512,9 +512,11 @@ class TimelogControllerTest < ActionController::TestCase
   end
 
   def test_index_should_sort_by_spent_on_and_created_on
-    t1 = TimeEntry.create!(:user => User.find(1), :project => Project.find(1), :hours => 1, :spent_on => '2012-06-16', :created_on => '2012-06-16 20:00:00', :activity_id => 10)
-    t2 = TimeEntry.create!(:user => User.find(1), :project => Project.find(1), :hours => 1, :spent_on => '2012-06-16', :created_on => '2012-06-16 20:05:00', :activity_id => 10)
-    t3 = TimeEntry.create!(:user => User.find(1), :project => Project.find(1), :hours => 1, :spent_on => '2012-06-15', :created_on => '2012-06-16 20:10:00', :activity_id => 10)
+    department = departments :departments_003
+    
+    t1 = TimeEntry.create!(:user => User.find(1), :project => Project.find(1), :hours => 1, :spent_on => '2012-06-16', :created_on => '2012-06-16 20:00:00', :activity_id => 10, :department => department)
+    t2 = TimeEntry.create!(:user => User.find(1), :project => Project.find(1), :hours => 1, :spent_on => '2012-06-16', :created_on => '2012-06-16 20:05:00', :activity_id => 10, :department => department)
+    t3 = TimeEntry.create!(:user => User.find(1), :project => Project.find(1), :hours => 1, :spent_on => '2012-06-15', :created_on => '2012-06-16 20:10:00', :activity_id => 10, :department => department)
 
     get :index, :project_id => 1,
       :f => ['spent_on'],
@@ -564,8 +566,8 @@ class TimelogControllerTest < ActionController::TestCase
     get :index, :format => 'csv'
     assert_response :success
     assert_equal 'text/csv; header=present', @response.content_type
-    assert @response.body.include?("Date,User,Activity,Project,Issue,Tracker,Subject,Hours,Comment,Overtime\n")
-    assert @response.body.include?("\n04/21/2007,Redmine Admin,Design,eCookbook,3,Bug,Error 281 when updating a recipe,1.0,\"\",\"\"\n")
+    assert @response.body.include?("Date,User,Activity,Department,Project,Issue,Tracker,Subject,Hours,Comment,Overtime\n")
+    assert @response.body.include?("\n04/21/2007,Redmine Admin,Design,Sales,eCookbook,3,Bug,Error 281 when updating a recipe,1.0,\"\",\"\"\n")
   end
 
   def test_index_csv_export
@@ -573,8 +575,8 @@ class TimelogControllerTest < ActionController::TestCase
     get :index, :project_id => 1, :format => 'csv'
     assert_response :success
     assert_equal 'text/csv; header=present', @response.content_type
-    assert @response.body.include?("Date,User,Activity,Project,Issue,Tracker,Subject,Hours,Comment,Overtime\n")
-    assert @response.body.include?("\n04/21/2007,Redmine Admin,Design,eCookbook,3,Bug,Error 281 when updating a recipe,1.0,\"\",\"\"\n")
+    assert @response.body.include?("Date,User,Activity,Department,Project,Issue,Tracker,Subject,Hours,Comment,Overtime\n")
+    assert @response.body.include?("\n04/21/2007,Redmine Admin,Design,Sales,eCookbook,3,Bug,Error 281 when updating a recipe,1.0,\"\",\"\"\n")
   end
 
   def test_index_csv_export_with_multi_custom_field
@@ -664,7 +666,7 @@ class TimelogControllerTest < ActionController::TestCase
       s1.force_encoding('Big5')
     end
     assert ar[0].include?(s1)
-    s2 = ar[1].split(",")[8]
+    s2 = ar[1].split(",")[9]
     if s2.respond_to?(:force_encoding)
       s3 = "\xa5H?"
       s3.force_encoding('Big5')
@@ -698,7 +700,7 @@ class TimelogControllerTest < ActionController::TestCase
       assert_equal 'text/csv; header=present', @response.content_type
 
       ar = @response.body.chomp.split("\n")
-      s2 = ar[1].split(",")[7]
+      s2 = ar[1].split(",")[8]
       assert_equal '999.9', s2
 
       str_tw = "Traditional Chinese (\xe7\xb9\x81\xe9\xab\x94\xe4\xb8\xad\xe6\x96\x87)"
@@ -733,7 +735,7 @@ class TimelogControllerTest < ActionController::TestCase
       assert_equal 'text/csv; header=present', @response.content_type
 
       ar = @response.body.chomp.split("\n")
-      s2 = ar[1].split(";")[7]
+      s2 = ar[1].split(";")[8]
       assert_equal '999,9', s2
 
       str_fr = "Fran\xc3\xa7ais"

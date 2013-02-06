@@ -41,8 +41,8 @@ class Token < ActiveRecord::Base
   def self.find_active_user(action, key, validity_days=nil)
     action = action.to_s
     key = key.to_s
-    return nil unless action.present? && key =~ /\A[a-f0-9]+\z/
-
+    return nil unless action.present? && !key.match('\A[a-zA-Z0-9]+\Z').nil?
+    
     token = find_by_action_and_value(action, key)
     if token && token.user && token.user.active?
       if validity_days.nil? || (token.created_on > validity_days.days.ago)

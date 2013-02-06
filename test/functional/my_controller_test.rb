@@ -19,7 +19,7 @@ require File.expand_path('../../test_helper', __FILE__)
 
 class MyControllerTest < ActionController::TestCase
   fixtures :users, :user_preferences, :roles, :projects, :members, :member_roles,
-  :issues, :issue_statuses, :trackers, :enumerations, :custom_fields, :auth_sources
+  :issues, :issue_statuses, :trackers, :enumerations, :custom_fields, :auth_sources, :departments
 
   def setup
     @request.session[:user_id] = 2
@@ -41,7 +41,7 @@ class MyControllerTest < ActionController::TestCase
     preferences = User.find(2).pref
     preferences[:my_page_layout] = {'top' => ['timelog']}
     preferences.save!
-    TimeEntry.create!(:user => User.find(2), :spent_on => Date.yesterday, :issue_id => 1, :hours => 2.5, :activity_id => 10)
+    TimeEntry.create!(:user => User.find(2), :spent_on => Date.yesterday, :issue_id => 1, :hours => 2.5, :activity_id => 10, :department => departments(:departments_003))
 
     get :page
     assert_response :success
