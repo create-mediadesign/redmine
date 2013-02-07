@@ -217,7 +217,6 @@ en:
   mail_body_wiki_content_updated: "The '%{id}' wiki page has been updated by %{author}."
 
   field_name: Name
-  field_department: Department
   field_description: Description
   field_summary: Summary
   field_is_required: Required
@@ -334,6 +333,10 @@ en:
   field_board_parent: Parent forum
   field_private_notes: Private notes
   field_inherit_members: Inherit members
+  field_department: Department
+  field_typ: Type
+  field_order_status: Order status
+  field_release_date: Release date
 
   setting_app_title: Application title
   setting_app_subtitle: Application subtitle

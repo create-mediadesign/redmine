@@ -383,6 +383,10 @@ de:
   field_visible: Sichtbar
   field_warn_on_leaving_unsaved: vor dem Verlassen einer Seite mit ungesichertem Text im Editor warnen
   field_watcher: Beobachter
+  field_department: Department
+  field_typ: Typ
+  field_order_status: Bestellstatus
+  field_release_date: Veröffentlichungs Datum
 
   general_csv_decimal_separator: ','
   general_csv_encoding: ISO-8859-1
