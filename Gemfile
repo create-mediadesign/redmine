@@ -37,39 +37,7 @@ platforms :jruby do
   gem "activerecord-jdbc-adapter", "1.2.5"
 end
 
-# Include database gems for the adapters found in the database
-# configuration file
-require 'erb'
-database_file = File.join(File.dirname(__FILE__), "config/database.yml")
-if File.exist?(database_file)
-  database_config = YAML::load(ERB.new(IO.read(database_file)).result)
-  adapters = database_config.values.map {|c| c['adapter']}.compact.uniq
-  if adapters.any?
-    adapters.each do |adapter|
-      case adapter
-      when /mysql/
-        gem "mysql", "~> 2.8.1", :platforms => [:mri_18, :mingw_18]
-        gem "mysql2", "~> 0.3.11", :platforms => [:mri_19, :mingw_19]
-        gem "activerecord-jdbcmysql-adapter", :platforms => :jruby
-      when /postgresql/
-        gem "pg", ">= 0.11.0", :platforms => [:mri, :mingw]
-        gem "activerecord-jdbcpostgresql-adapter", :platforms => :jruby
-      when /sqlite3/
-        gem "sqlite3", :platforms => [:mri, :mingw]
-        gem "activerecord-jdbcsqlite3-adapter", :platforms => :jruby
-      when /sqlserver/
-        gem "tiny_tds", "~> 0.5.1", :platforms => [:mri, :mingw]
-        gem "activerecord-sqlserver-adapter", :platforms => [:mri, :mingw]
-      else
-        warn("Unknown database adapter `#{adapter}` found in config/database.yml, use Gemfile.local to load your own database gems")
-      end
-    end
-  else
-    warn("No adapter found in config/database.yml, please configure it first")
-  end
-else
-  warn("Please configure your config/database.yml first")
-end
+gem "mysql2", :platforms => [:mri_19, :mingw_19]
 
 group :development do
   gem "rdoc", ">= 2.4.2"
@@ -82,16 +50,4 @@ group :test do
   gem "mocha"
   gem 'capybara', '~> 2.0.0'
   gem 'pry-rails'
-end
-
-local_gemfile = File.join(File.dirname(__FILE__), "Gemfile.local")
-if File.exists?(local_gemfile)
-  puts "Loading Gemfile.local ..." if $DEBUG # `ruby -d` or `bundle -v`
-  instance_eval File.read(local_gemfile)
-end
-
-# Load plugins' Gemfiles
-Dir.glob File.expand_path("../plugins/*/Gemfile", __FILE__) do |file|
-  puts "Loading #{file} ..." if $DEBUG # `ruby -d` or `bundle -v`
-  instance_eval File.read(file)
 end
