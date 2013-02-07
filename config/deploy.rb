@@ -2,7 +2,6 @@ require 'bundler/capistrano'
 require 'rvm/capistrano'
 require 'airbrake/capistrano'
 
-load 'deploy/assets'
 load 'config/recipes/base'
 load 'config/recipes/rvm'
 load 'config/recipes/redmine'
