@@ -428,6 +428,7 @@ class Project < ActiveRecord::Base
     @rolled_up_trackers ||=
       Tracker.
         joins(:projects).
+        joins("JOIN #{EnabledModule.table_name} ON #{EnabledModule.table_name}.project_id = #{Project.table_name}.id AND #{EnabledModule.table_name}.name = 'issue_tracking'").
         select("DISTINCT #{Tracker.table_name}.*").
         where("#{Project.table_name}.lft >= ? AND #{Project.table_name}.rgt <= ? AND #{Project.table_name}.status <> #{STATUS_ARCHIVED}", lft, rgt).
         sorted.
@@ -799,7 +800,7 @@ class Project < ActiveRecord::Base
   def copy_wiki(project)
     # Check that the source project has a wiki first
     unless project.wiki.nil?
-      self.wiki ||= Wiki.new
+      wiki = self.wiki || Wiki.new
       wiki.attributes = project.wiki.attributes.dup.except("id", "project_id")
       wiki_pages_map = {}
       project.wiki.pages.each do |page|
@@ -811,6 +812,8 @@ class Project < ActiveRecord::Base
         wiki.pages << new_wiki_page
         wiki_pages_map[page.id] = new_wiki_page
       end
+
+      self.wiki = wiki
       wiki.save
       # Reproduce page hierarchy
       project.wiki.pages.each do |page|

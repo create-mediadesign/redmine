@@ -420,7 +420,7 @@ de:
   label_api_access_key_created_on: Der API-Zugriffsschlüssel wurde vor %{value} erstellt
   label_applied_status: Zugewiesener Status
   label_ascending: Aufsteigend
-  label_assigned_to_me_issues: Mir zugewiesen
+  label_assigned_to_me_issues: Mir zugewiesene Tickets
   label_associated_revisions: Zugehörige Revisionen
   label_attachment: Datei
   label_attachment_delete: Anhang löschen
@@ -622,7 +622,7 @@ de:
   label_more_than_ago: vor mehr als
   label_my_account: Mein Konto
   label_my_page: Meine Seite
-  label_my_page_block: Bereich "Meine Seite"
+  label_my_page_block: Verfügbare Widgets
   label_my_projects: Meine Projekte
   label_my_queries: Meine eigenen Abfragen
   label_new: Neu
@@ -672,8 +672,8 @@ de:
   label_project_plural: Projekte
   label_public_projects: Öffentliche Projekte
   label_query: Benutzerdefinierte Abfrage
-  label_query_new: Neuer Bericht
-  label_query_plural: Benutzerdefinierte Berichte
+  label_query_new: Neue Abfrage
+  label_query_plural: Benutzerdefinierte Abfragen
   label_read: Lesen...
   label_readonly: Nur-Lese-Zugriff
   label_register: Registrieren
@@ -689,7 +689,7 @@ de:
   label_reply_plural: Antworten
   label_report: Bericht
   label_report_plural: Berichte
-  label_reported_issues: Gemeldete Tickets
+  label_reported_issues: Erstellte Tickets
   label_repository: Projektarchiv
   label_repository_new: Neues Repository
   label_repository_plural: Projektarchive

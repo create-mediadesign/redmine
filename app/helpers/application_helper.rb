@@ -317,7 +317,7 @@ module ApplicationHelper
   def principals_check_box_tags(name, principals)
     s = ''
     principals.each do |principal|
-      s << "<label>#{ check_box_tag name, principal.id, false } #{h principal}</label>\n"
+      s << "<label>#{ check_box_tag name, principal.id, false, :id => nil } #{h principal}</label>\n"
     end
     s.html_safe
   end
@@ -1076,7 +1076,7 @@ module ApplicationHelper
                    "var datepickerOptions={dateFormat: 'yy-mm-dd', firstDay: #{start_of_week}, " +
                      "showOn: 'button', buttonImageOnly: true, buttonImage: '" + 
                      path_to_image('/images/calendar.png') +
-                     "', showButtonPanel: true};")
+                     "', showButtonPanel: true, showWeek: true, showOtherMonths: true, selectOtherMonths: true};")
         jquery_locale = l('jquery.locale', :default => current_language.to_s)
         unless jquery_locale == 'en'
           tags << javascript_include_tag("i18n/jquery.ui.datepicker-#{jquery_locale}.js") 
