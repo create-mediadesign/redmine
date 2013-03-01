@@ -1,4 +1,3 @@
-set(:airbrake_host)    { Capistrano::CLI.ui.ask 'Airbrake host: ', String }
 set(:airbrake_api_key) { Capistrano::CLI.password_prompt 'Airbrake api key: ' }
 
 namespace :airbrake do
