@@ -34,3 +34,5 @@
 /Gemfile.local
 redmine.tmproj
 /config/project_types.yml
+*.swp
+.ruby-version
