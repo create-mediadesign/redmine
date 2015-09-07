@@ -7,8 +7,9 @@ gem "coderay", "~> 1.0.6"
 gem "fastercsv", "~> 1.5.0", :platforms => [:mri_18, :mingw_18, :jruby]
 gem "builder", "3.0.0"
 gem 'capistrano'
-gem 'rvm-capistrano'
+gem 'rvm-capistrano', require: false
 gem 'airbrake'
+gem 'rails_12factor'
 
 # Optional gem for LDAP authentication
 group :ldap do
@@ -37,7 +38,7 @@ platforms :jruby do
   gem "activerecord-jdbc-adapter", "1.2.5"
 end
 
-gem "mysql2", :platforms => [:mri_19, :mingw_19]
+gem "mysql2", :platforms => [:mri_19, :mingw_19, :mri, :mingw]
 
 group :development do
   gem "rdoc", ">= 2.4.2"
@@ -50,4 +51,8 @@ group :test do
   gem "mocha"
   gem 'capybara', '~> 2.0.0'
   gem 'pry-rails'
+  gem 'test-unit'
 end
+
+
+gem 'iconv', '~> 1.0.0'
