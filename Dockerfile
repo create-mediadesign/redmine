@@ -13,4 +13,4 @@ ADD . /src
 
 EXPOSE 3000
 
-CMD ./config_env.rb && ./run.sh
+CMD ./run.sh

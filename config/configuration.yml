@@ -1,39 +1,4 @@
-#!/usr/local/bin/ruby
 
-# 0. set the values // fetch them from environment:
-
-environment = ENV["ENVIRONMENT"]
-db_host     = ENV["DB_HOST"]
-db_port     = ENV["DB_PORT"]
-db_user     = ENV["DB_USER"]
-db_password = ENV["DB_PASSWORD"]
-db_database = ENV["DB_DATABASE"]
-smtp_host   = ENV["SMTP_HOST"]
-smtp_port   = ENV["SMTP_PORT"]
-smtp_user   = ENV["SMTP_USER"]
-smtp_password=ENV["SMTP_PASSWORD"]
-airbrake_api_key= ENV["AIRBRAKE_API_KEY"]
-secret_key   =ENV["SECRET_KEY"]
-
-# 1. config/database.yml
-
-File.open('config/database.yml', 'w') do |f|
-  f.write %{
-#{environment}:
-  adapter: mysql2
-  encoding: utf8
-  database: #{db_database}
-  username: #{db_user}
-  password: #{db_password}
-  host: #{db_host}
-  port: #{db_port}
-  }
-end
-
-# 2. config/configuration.yml
-
-File.open('config/configuration.yml', 'w') do |f|
-  f.write %{
 # = Redmine configuration file
 #
 # Each environment has it's own configuration options.  If you are only
@@ -55,16 +20,15 @@ File.open('config/configuration.yml', 'w') do |f|
 #
 # ==== Simple SMTP server at localhost
 #
-#{environment}:
+commons: &commons
   email_delivery:
     delivery_method: :smtp
     smtp_settings:
-      address: #{smtp_host}
-      port: #{smtp_port}
+      address: "<%= ENV['SMTP_HOST'] %>"
+      port: "<%= ENV['SMTP_PORT'] %>"
       authentication: :login
-      user_name: "#{smtp_user}"
-      password: "#{smtp_password}"
-
+      user_name: "<%= ENV['SMTP_USER'] %>"
+      password: "<%= ENV['SMTP_PASSWORD'] %>"
   # Absolute path to the directory where attachments are stored.
   # The default is the 'files' directory in your Redmine instance.
   # Your Redmine instance needs to have write permission on this
@@ -89,7 +53,7 @@ File.open('config/configuration.yml', 'w') do |f|
   scm_bazaar_command:
   scm_darcs_command:
 
-  database_cipher_key: '#{secret_key}'
+  database_cipher_key: "<%= ENV['SECRET_KEY'] %>"
 
   # Set this to false to disable plugins' assets mirroring on startup.
   # You can use `rake redmine:plugins:assets` to manually mirror assets
@@ -104,46 +68,11 @@ File.open('config/configuration.yml', 'w') do |f|
   #
   # If you have a load-balancing Redmine cluster, you have to use the
   # same secret token on each machine.
-  secret_token: '#{secret_key}'
-  }
-end
+  secret_token: "<%= ENV['SECRET_KEY'] %>"
 
-# 3. config/project_types.yml
-
-File.open('config/project_types.yml', 'w') do |f|
-  f.write %{
-- intern Routine
-- Kundenauftrag
-- Kundenprojekt
-- Forschungsprojekt
-- intern Auftrag/Projekt
-- Dummy
-- Not defined
-  }
-end
-
-# 4. config/initializers/airbrake.rb
-
-File.open('config/initializers/airbrake.rb', 'w') do |f|
-  f.write %{
-Airbrake.configure do |config|
-  config.api_key  = '#{airbrake_api_key}'
-end
-  }
-end
-
-# 5. config/initializers/secret_token.rb
-
-File.open('config/initializers/secret_token.rb', 'w') do |f|
-  f.write %{
-RedmineApp::Application.config.secret_token = '#{secret_key}'
-  }
-end
-
-# 6. config/initializers/session_store.rb
-
-File.open('config/initializers/session_store.rb', 'w') do |f|
-  f.write %{
-RedmineApp::Application.config.session_store :cookie_store, key: '_redmine_session'
-  }
-end
+development:
+  <<: *commons
+production:
+  <<: *commons
+test:
+  <<: *commons

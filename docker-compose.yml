@@ -18,7 +18,6 @@ web:
     - DB_USER=root
     - DB_PASSWORD=my-secret-pw
     - DB_DATABASE=redmine_dev
-    - SMTP_ADDRESS=localhost
     - AIRBRAKE_API_KEY=
     - SECRET_KEY=a2bbb1fb6ce1d7979b25b967469f4617aba4b445c65cf0be153e5b848a5cd80469b9a630ab2fc267
     - SMTP_HOST=localhost
